@@ -1,0 +1,446 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vinho na Mesa - Player</title>
+  <meta name="description" content="Player de entrevistas assíncronas com perguntas e respostas em sequência">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Ícones -->
+  <link rel="icon" type="image/png" sizes="48x48" href="/img/logo_vinhonamesa.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/img/logo_vinhonamesa.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/logo_vinhonamesa.png">
+  
+  <!-- iOS Safari -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vinho na Mesa">
+  <link rel="apple-touch-icon" href="/img/logo_vinhonamesa.png">
+  
+  <!-- Microsoft -->
+  <meta name="msapplication-TileImage" content="/img/logo_vinhonamesa.png">
+  <meta name="msapplication-TileColor" content="#5d1326">
+  
+  <style>
+    :root{--bg:#0b0b0b;--wine:#5d1326;--gold:#c9a24a;--muted:#d9d9d9}
+    body{margin:0;background:linear-gradient(0deg,#050505,#0b0b0b);color:var(--muted);font-family:Inter,Arial;padding:18px}
+    
+    .main-container{display:grid;grid-template-columns:250px 1fr 250px;gap:20px;max-width:1600px;margin:0 auto}
+    .sidebar{display:flex;flex-direction:column;gap:12px}
+    .ad-box{background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222}
+    .ad-box img{width:100%;border-radius:8px;margin-bottom:8px}
+    .ad-label{font-size:11px;color:#666;text-transform:uppercase}
+    
+    .center-content{width:100%}
+    .wrap{width:100%}
+    .card{background:#121212;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+    video{width:100%;border-radius:8px;background:#000;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
+    .meta{margin-top:12px;color:#aaa;font-size:14px}
+    .btn{background:var(--wine);color:#fff;padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+    .progress{width:100%;height:8px;background:#222;border-radius:4px;margin:12px 0;overflow:hidden}
+    .progress-bar{height:100%;background:var(--wine);transition:width 0.3s}
+    .video-info{background:#0a0a0a;padding:12px;border-radius:8px;margin-top:12px}
+    .video-info h3{color:var(--gold);margin:0 0 8px 0;font-size:16px}
+    .counter{color:#999;font-size:13px}
+    
+    .horizontal-ads{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+    .horizontal-ad{background:#0a0a0a;border-radius:12px;padding:12px;text-align:center;border:1px solid #222}
+    .horizontal-ad img{width:100%;border-radius:8px}
+    
+    .popup{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);display:none;justify-content:center;align-items:center;z-index:9999}
+    .popup-content{background:#121212;padding:24px;border-radius:16px;max-width:500px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.8)}
+    .popup-content h3{margin:0 0 12px 0;color:var(--gold)}
+    .popup-content p{color:#aaa;margin-bottom:16px}
+    .popup-buttons{display:flex;gap:12px;justify-content:center}
+    .popup-btn{background:var(--wine);color:#fff;padding:10px 20px;border-radius:8px;border:none;cursor:pointer}
+    .popup-btn.skip{background:transparent;border:1px solid #444;color:#999}
+    
+    @media(max-width:1200px){.main-container{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:repeat(2,1fr)}}@media(max-width:768px){.horizontal-ads{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <!-- Logo no Topo -->
+  <div style="text-align:center;margin-bottom:24px">
+    <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" style="height:60px"/>
+  </div>
+
+  <!-- Popup de Anúncio -->
+        <div id="popup" class="popup">
+      <div class="popup-content">
+        <h3>🎬 Transição</h3>
+        <p>Vídeo atual finalizado.</p>
+        <div id="adContentPopup" style="min-height:100px;background:#0a0a0a;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:12px 0;color:#666">
+          Área para anúncio ou conteúdo promocional
+        </div>
+        <div class="popup-buttons">
+          <button id="skipAd" class="popup-btn skip">Pular</button>
+          <button id="continueAd" class="popup-btn">Continuar</button>
+        </div>
+      </div>
+    </div>
+  
+    <div class="main-container">
+      <!-- Anúncios Laterais Esquerda -->
+      <div class="sidebar">
+        <div class="ad-box" id="adLeft1">
+          <div class="ad-label">Anúncio</div>
+          <div style="height:300px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444">
+            <div>Área para upload<br/>de anúncio</div>
+          </div>
+        </div>
+        <div class="ad-box" id="adLeft2">
+          <div class="ad-label">Anúncio</div>
+          <div style="height:300px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444">
+            <div>Área para upload<br/>de anúncio</div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Conteúdo Principal -->
+      <div class="center-content">
+    <div class="wrap">
+      <div class="card">
+        <div id="thumbnailContainer" style="margin-bottom: 16px; text-align: center;"></div>
+      <h2 id="title">Vinho na Mesa — Episódio</h2>
+            
+            <!-- Banner Explicativo -->
+            <div style="background:linear-gradient(135deg,#2a1a0a,#1a1006);border:1px solid #c9a24a;border-radius:12px;padding:20px;margin:16px 0;text-align:center">
+              <h3 style="color:#c9a24a;margin:0 0 12px 0;font-size:18px">🍷 Sobre esta Entrevista</h3>
+              <p style="color:#d9d9d9;margin:0;font-size:14px;line-height:1.6">
+                Esta entrevista é gravada de forma assíncrona. 
+                As perguntas são enviadas ao artista que responde no seu tempo. 
+                Algumas respostas podem ainda estar sendo gravadas. 
+                Atualize a página para ver as novas respostas!
+              </p>
+            </div>
+  
+        <div id="playerArea" style="margin-top:8px">
+          <div id="playerHolder">Carregando...</div>
+        </div>
+        <div class="meta" id="meta"></div>
+            
+            <!-- Anúncios Horizontais Embaixo -->
+            <div class="horizontal-ads">
+              <div class="horizontal-ad" id="adH1">
+                <div class="ad-label">Anúncio</div>
+                <div style="height:200px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444">
+                  <div>Área para anúncio</div>
+                </div>
+              </div>
+              <div class="horizontal-ad" id="adH2">
+                <div class="ad-label">Anúncio</div>
+                <div style="height:200px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444">
+                  <div>Área para anúncio</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Anúncios Laterais Direita -->
+      <div class="sidebar">
+        <div class="ad-box" id="adRight1">
+          <div class="ad-label">Anúncio</div>
+          <div style="height:300px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444">
+            <div>Área para upload<br/>de anúncio</div>
+          </div>
+        </div>
+        <div class="ad-box" id="adRight2">
+          <div class="ad-label">Anúncio</div>
+          <div style="height:300px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444">
+            <div>Área para upload<br/>de anúncio</div>
+          </div>
+        </div>
+      </div>
+    </div>
+<script>
+const token = new URLSearchParams(location.search).get('token');
+if(!token){ document.getElementById('playerHolder').innerText = 'Token de visualização não informado'; throw new Error('Token ausente'); }
+
+const adSlots = {
+  'left-1': 'adLeft1',
+  'left-2': 'adLeft2',
+  'right-1': 'adRight1',
+  'right-2': 'adRight2',
+  'h-1': 'adH1',
+  'h-2': 'adH2',
+  'popup': 'adContentPopup'
+};
+
+async function loadAds() {
+  try {
+    const res = await fetch('/api/ads');
+    const data = await res.json();
+
+    if (data.ok && data.data && data.data.length > 0) {
+      data.data.forEach(ad => {
+        const slotId = adSlots[ad.slot];
+        if (slotId) {
+          const slotEl = document.getElementById(slotId);
+          if (slotEl) {
+            slotEl.innerHTML = `
+              <div class="ad-label">${ad.title || 'Patrocínio'}</div>
+              ${ad.imageUrl ? `<img src="${ad.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : 
+                `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px">${ad.title || 'Espaço para anúncio'}</div>`}
+            `;
+            if (ad.linkUrl) {
+              slotEl.style.cursor = 'pointer';
+              slotEl.onclick = () => window.open(ad.linkUrl, '_blank');
+            }
+          }
+        }
+      });
+    } else {
+      // Mostrar anúncios padrão se não houver no banco
+      Object.values(adSlots).forEach(slotId => {
+        if (slotId && slotId !== 'adContentPopup') {
+          const slotEl = document.getElementById(slotId);
+          if (slotEl) {
+            slotEl.innerHTML = `
+              <div class="ad-label">Patrocínio</div>
+              <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;text-align:center">
+                📢<br/>Espaço disponível<br/>para anunciantes
+              </div>
+            `;
+          }
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Erro ao carregar anúncios:', err);
+  }
+}
+
+async function load(){
+  const res = await fetch(`/api/interviews/by-view-token/${token}`).then(r=>r.json());
+  if(!res.ok){ document.getElementById('playerHolder').innerText = 'Entrevista não encontrada'; return; }
+  const interview = res.interview;
+  document.getElementById('title').innerText = interview.title;
+
+  // Display thumbnail if available
+  const thumbnailContainer = document.getElementById('thumbnailContainer');
+  if (interview.thumbnailUrl) {
+    thumbnailContainer.innerHTML = `<img src="${interview.thumbnailUrl}" alt="Capa da Entrevista" style="max-width:100%; height:auto; border-radius:8px;">`;
+  } else {
+    thumbnailContainer.innerHTML = ''; // Clear if no thumbnail
+  }
+
+  if(interview.finalVideoUrl){
+    document.getElementById('playerHolder').innerHTML = `<video controls src="${interview.finalVideoUrl}"></video>`;
+    document.getElementById('meta').innerText = 'Vídeo final (stitch) disponível';
+    return;
+  }
+  const container = document.createElement('div');
+  const seq = [];
+  (interview.questions || []).sort((a,b)=>a.order-b.order).forEach(q => {
+    seq.push({ url: q.url, label: `Pergunta ${q.order}`, type: 'question' });
+    const answers = (interview.answers || []).filter(a => a.questionOrder === q.order).sort((a,b)=>a.order-b.order);
+    if(answers.length > 0){
+      answers.forEach(a => seq.push({ url: a.url, label: `Resposta ${q.order}`, type: 'answer' }));
+    } else {
+      seq.push({ url: null, label: `⚠️ Artista ainda não respondeu à pergunta ${q.order}`, type: 'pending' });
+    }
+  });
+  (interview.answers || []).filter(a => !a.questionOrder).forEach(a => seq.push({ url: a.url, label:'Resposta' }));
+  if(seq.length===0){
+    container.innerText = 'Nenhum vídeo disponível ainda.';
+    document.getElementById('playerHolder').appendChild(container);
+    return;
+  }
+
+  const vid = document.createElement('video');
+  vid.controls = true;
+  vid.autoplay = false; // O usuário precisa clicar para começar
+  
+  // Verifica se o primeiro item tem URL (se não é "pending")
+  if(seq[0].url) {
+  vid.src = seq[0].url;
+  container.appendChild(vid);
+  } else {
+    // Mostra mensagem de "Artista ainda não respondeu"
+    const pendingMsg = document.createElement('div');
+    pendingMsg.style.background = '#2a1a0a';
+    pendingMsg.style.border = '2px solid #c9a24a';
+    pendingMsg.style.borderRadius = '12px';
+    pendingMsg.style.padding = '40px';
+    pendingMsg.style.textAlign = 'center';
+    pendingMsg.style.color = '#c9a24a';
+    pendingMsg.innerHTML = `<h3>${seq[0].label}</h3><p style="margin:12px 0 0 0;color:#999">A resposta ainda não foi enviada pelo artista.</p>`;
+    container.appendChild(pendingMsg);
+    vid.src = ''; // Sem vídeo ainda
+  }
+
+  // Progress bar
+  const progressContainer = document.createElement('div');
+  progressContainer.className = 'progress';
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  progressBar.style.width = '0%';
+  progressContainer.appendChild(progressBar);
+  container.appendChild(progressContainer);
+
+  // Video info
+  const videoInfo = document.createElement('div');
+  videoInfo.className = 'video-info';
+  const info = document.createElement('div');
+  info.innerHTML = `<h3>${seq[0].label}</h3><div class="counter">Vídeo 1 de ${seq.length}</div>`;
+  videoInfo.appendChild(info);
+  container.appendChild(videoInfo);
+
+  let idx = 0;
+  
+  // Update progress bar
+  vid.addEventListener('timeupdate', () => {
+    const percent = (vid.currentTime / vid.duration) * 100;
+    progressBar.style.width = percent + '%';
+  });
+
+  // Botão "Próximo Vídeo" (mantido como backup)
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn';
+  nextBtn.style.display = 'none';
+  nextBtn.style.width = '100%';
+  nextBtn.style.marginTop = '8px';
+  nextBtn.innerText = '▶️ Próximo Vídeo';
+  container.appendChild(nextBtn);
+
+  vid.addEventListener('ended', () => {
+    idx++;
+    if(idx >= seq.length) {
+      info.innerHTML = '<h3>🎬 Fim da Entrevista</h3><div class="counter">Todos os vídeos foram reproduzidos</div>';
+      vid.style.display = 'none';
+      progressContainer.style.display = 'none';
+      nextBtn.style.display = 'none';
+      return;
+    }
+    
+    // Mostrar anúncio leve antes do próximo vídeo
+    showLightAd();
+  });
+
+  function showLightAd() {
+    // Criar anúncio leve sobreposto (não bloqueante)
+    const adOverlay = document.createElement('div');
+    adOverlay.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+      border: 2px solid #5d1326;
+      border-radius: 12px;
+      padding: 20px;
+      z-index: 1000;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+      max-width: 400px;
+    `;
+    
+    adOverlay.innerHTML = `
+      <div style="font-size: 18px; margin-bottom: 12px;">📢 Patrocínio</div>
+      <div style="margin-bottom: 16px; color: #c9a24a;">Apoie nossos artistas</div>
+      <div style="font-size: 14px; color: #999; margin-bottom: 16px;">Anúncio termina em <span id="adTimer">5</span>s</div>
+      <button onclick="this.parentElement.remove(); playNextVideo();" style="
+        background: #5d1326;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-right: 8px;
+      ">Pular</button>
+    `;
+    
+    document.body.appendChild(adOverlay);
+    
+    // Timer automático
+    let timeLeft = 5;
+    const timer = setInterval(() => {
+      timeLeft--;
+      const timerEl = document.getElementById('adTimer');
+      if(timerEl) timerEl.textContent = timeLeft;
+      
+      if(timeLeft <= 0) {
+        clearInterval(timer);
+        if(adOverlay.parentElement) {
+          adOverlay.remove();
+        }
+        playNextVideo();
+      }
+    }, 1000);
+  }
+
+  function playNextVideo() {
+    const currentItem = seq[idx];
+    
+    // Remove vídeo anterior se existir
+    if(vid.style.display !== 'none') {
+      vid.style.display = 'none';
+      progressContainer.style.display = 'none';
+    }
+    
+    // Limpa container e adiciona novo conteúdo
+    container.innerHTML = '';
+    
+    if(currentItem.url) {
+      // Tem vídeo
+      vid.src = currentItem.url;
+      vid.style.display = 'block';
+      vid.style.width = '100%';
+      vid.style.marginBottom = '8px';
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      container.appendChild(vid);
+      container.appendChild(progressContainer);
+      info.innerHTML = `<h3>${currentItem.label}</h3><div class="counter">Vídeo ${idx+1} de ${seq.length}</div>`;
+      vid.play();
+    } else {
+      // Artista ainda não respondeu
+      const pendingMsg = document.createElement('div');
+      pendingMsg.style.background = '#2a1a0a';
+      pendingMsg.style.border = '2px solid #c9a24a';
+      pendingMsg.style.borderRadius = '12px';
+      pendingMsg.style.padding = '40px';
+      pendingMsg.style.textAlign = 'center';
+      pendingMsg.style.color = '#c9a24a';
+      pendingMsg.innerHTML = `<h3>${currentItem.label}</h3><p style="margin:12px 0 0 0;color:#999">A resposta ainda não foi enviada pelo artista.</p>`;
+      container.appendChild(pendingMsg);
+      info.innerHTML = `<h3>${currentItem.label}</h3><div class="counter">Item ${idx+1} de ${seq.length}</div>`;
+      
+      // Avança automaticamente após 3 segundos para pending
+      setTimeout(() => {
+        idx++;
+        if(idx < seq.length) {
+          playNextVideo();
+        } else {
+          info.innerHTML = '<h3>🎬 Fim da Entrevista</h3><div class="counter">Todos os vídeos foram reproduzidos</div>';
+        }
+      }, 3000);
+    }
+  }
+
+  document.getElementById('playerHolder').innerHTML = '';
+  document.getElementById('playerHolder').appendChild(container);
+  document.getElementById('meta').innerText = 'Reprodução sequencial (ainda sem vídeo final unificado).';
+}
+load();
+loadAds();
+
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('[SW] Service Worker registrado com sucesso:', registration.scope);
+      })
+      .catch(error => {
+        console.log('[SW] Falha ao registrar Service Worker:', error);
+      });
+  });
+}
+</script>
+</body>
+</html>

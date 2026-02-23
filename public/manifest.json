@@ -1,0 +1,31 @@
+{
+  "name": "Vinho na Mesa",
+  "short_name": "Vinho na Mesa",
+  "description": "Plataforma de entrevistas assíncronas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0b",
+  "theme_color": "#5d1326",
+  "icons": [
+    {
+      "src": "/img/logo_vinhonamesa.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/logo_vinhonamesa.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/logo_vinhonamesa.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/logo_vinhonamesa.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

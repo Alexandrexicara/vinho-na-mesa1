@@ -1,0 +1,162 @@
+{
+  "interviews": [
+    {
+      "_id": "int-1771876803937",
+      "title": "MARINA SENNA DO BRASIL",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "MARINA SENNA",
+      "status": "published",
+      "thumbnailUrl": "http://localhost:5000/uploads/1771876823378-marinasenna.png",
+      "questions": [
+        {
+          "_id": "q-1771876888109",
+          "order": 1,
+          "url": "http://localhost:5000/uploads/1771876887747-question-1-1771876887665.webm",
+          "createdAt": "2026-02-23T20:01:28.109Z"
+        },
+        {
+          "_id": "q-1771876925943",
+          "order": 2,
+          "url": "http://localhost:5000/uploads/1771876925207-question-2-1771876925153.webm",
+          "createdAt": "2026-02-23T20:02:05.943Z"
+        }
+      ],
+      "answers": [
+        {
+          "_id": "a-1771877794410",
+          "url": "http://localhost:5000/uploads/1771877793008-answer-1771877792942.webm",
+          "questionOrder": 1,
+          "createdAt": "2026-02-23T20:16:34.410Z"
+        },
+        {
+          "_id": "a-1771877831172",
+          "url": "http://localhost:5000/uploads/1771877830792-answer-1771877830734.webm",
+          "questionOrder": 2,
+          "createdAt": "2026-02-23T20:17:11.172Z"
+        }
+      ],
+      "inviteToken": "invite-1771876803934-eptgzhtss",
+      "viewToken": "view-1771876803937-i4oas43rn",
+      "viewCount": 5,
+      "createdAt": "2026-02-23T20:00:03.937Z",
+      "updatedAt": "2026-02-23T20:25:43.061Z"
+    },
+    {
+      "_id": "int-1771874402658",
+      "title": "Marina Senna Do Brasil",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "Marina Senna",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [
+        {
+          "_id": "q-1771875801112",
+          "order": 1,
+          "url": "http://localhost:5000/uploads/1771875798500-question-1-1771875798258.webm",
+          "createdAt": "2026-02-23T19:43:21.112Z"
+        },
+        {
+          "_id": "q-1771876056384",
+          "order": 2,
+          "url": "http://localhost:5000/uploads/1771876055606-question-2-1771876055461.webm",
+          "createdAt": "2026-02-23T19:47:36.384Z"
+        }
+      ],
+      "answers": [
+        {
+          "_id": "a-1771875960700",
+          "url": "http://localhost:5000/uploads/1771875959760-answer-1771875959682.webm",
+          "questionOrder": 1,
+          "createdAt": "2026-02-23T19:46:00.700Z"
+        },
+        {
+          "_id": "a-1771876162545",
+          "url": "http://localhost:5000/uploads/1771876162313-answer-1771876162264.webm",
+          "questionOrder": 1,
+          "createdAt": "2026-02-23T19:49:22.545Z"
+        },
+        {
+          "_id": "a-1771876195471",
+          "url": "http://localhost:5000/uploads/1771876195205-answer-1771876195152.webm",
+          "questionOrder": 2,
+          "createdAt": "2026-02-23T19:49:55.471Z"
+        }
+      ],
+      "inviteToken": "invite-1771874402658-ik6nv9exn",
+      "viewToken": "view-1771874402658-vz6h64non",
+      "viewCount": 0,
+      "createdAt": "2026-02-23T19:20:02.658Z",
+      "updatedAt": "2026-02-23T19:49:55.471Z"
+    },
+    {
+      "_id": "int-1767980309241",
+      "title": "iiiyyyy",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "santossilvac992@gmail.com",
+      "artistName": "gusttavo lima",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [
+        {
+          "_id": "q-1767980384266",
+          "order": 1,
+          "url": "http://localhost:5000/uploads/1767980383848-question-1-1767980382608.webm",
+          "createdAt": "2026-01-09T17:39:44.266Z"
+        }
+      ],
+      "answers": [],
+      "inviteToken": "invite-1767980309241-4tofaux16",
+      "viewToken": "view-1767980309241-ycl4aclyh",
+      "viewCount": 0,
+      "createdAt": "2026-01-09T17:38:29.241Z",
+      "updatedAt": "2026-01-09T17:39:44.266Z"
+    },
+    {
+      "_id": "int-1767980283540",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1767980283540-h018i6n0s",
+      "viewToken": "view-1767980283540-hlq63cz20",
+      "viewCount": 0,
+      "createdAt": "2026-01-09T17:38:03.540Z"
+    },
+    {
+      "_id": "int-1767980269951",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1767980269950-uav4pwd02",
+      "viewToken": "view-1767980269951-svph37ahb",
+      "viewCount": 0,
+      "createdAt": "2026-01-09T17:37:49.951Z"
+    }
+  ],
+  "ads": [],
+  "viewIndex": {
+    "view-1767980269951-svph37ahb": "int-1767980269951",
+    "view-1767980283540-hlq63cz20": "int-1767980283540",
+    "view-1767980309241-ycl4aclyh": "int-1767980309241",
+    "view-1771874402658-vz6h64non": "int-1771874402658",
+    "view-1771876803937-i4oas43rn": "int-1771876803937"
+  },
+  "artistIndex": {
+    "invite-1767980269950-uav4pwd02": "int-1767980269951",
+    "invite-1767980283540-h018i6n0s": "int-1767980283540",
+    "invite-1767980309241-4tofaux16": "int-1767980309241",
+    "invite-1771874402658-ik6nv9exn": "int-1771874402658",
+    "invite-1771876803934-eptgzhtss": "int-1771876803937"
+  }
+}

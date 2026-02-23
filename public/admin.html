@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vinho na Mesa — Painel Admin</title>
+  <meta name="description" content="Painel administrativo para criar e gerenciar entrevistas assíncronas">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Ícones -->
+  <link rel="icon" type="image/png" sizes="48x48" href="/img/logo_vinhonamesa.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/img/logo_vinhonamesa.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/logo_vinhonamesa.png">
+  
+  <!-- iOS Safari -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vinho na Mesa">
+  <link rel="apple-touch-icon" href="/img/logo_vinhonamesa.png">
+  
+  <!-- Microsoft -->
+  <meta name="msapplication-TileImage" content="/img/logo_vinhonamesa.png">
+  <meta name="msapplication-TileColor" content="#5d1326">
+  
+  <style>
+    :root{ --bg:#0b0b0b; --wine:#5d1326; --gold:#c9a24a; --muted:#d9d9d9; --card:#121212; --radius:12px; }
+    *{ box-sizing:border-box; font-family:Inter, system-ui, Arial, sans-serif }
+    body{ margin:0; background:linear-gradient(0deg,#050505, #0b0b0b); color:var(--muted); min-height:100vh; padding:28px }
+    header{ display:flex; align-items:center; gap:16px; margin-bottom:18px }
+    .logo{ display:flex; align-items:center; gap:12px }
+    .logo .circle{ width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--wine),#8b1b2b); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff }
+    h1{ margin:0; font-size:20px }
+    .container{ display:grid; grid-template-columns:360px 1fr; gap:20px }
+    .card{ background:var(--card); padding:16px; border-radius:var(--radius); box-shadow:0 6px 18px rgba(0,0,0,0.6) }
+    label{ display:block; font-size:13px; margin-bottom:6px; color:#aaa }
+    input[type="text"], input[type="email"], input[type="password"]{ width:100%; padding:10px; border-radius:8px; border:1px solid #222; background:#0a0a0a; color:var(--muted) }
+    button{ background:var(--wine); color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600 }
+    button:hover{ background:#7a1a34 }
+    button.secondary{ background:#222 }
+    button.secondary:hover{ background:#333 }
+    button.copy{ background:var(--gold); color:#000 }
+    button.copy:hover{ background:#d4b05f }
+    .small{ font-size:13px; color:#777; margin:8px 0 }
+    .video-preview video{ width:100%; height:300px; background:#000; border-radius:8px }
+    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px }
+    .item{ background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; border:1px solid #222 }
+    hr{ border:0; border-top:1px solid #222; margin:16px 0 }
+    #questionsList video{ width:100%; height:120px; background:#000; border-radius:8px }
+    .hidden { display: none; }
+    footer{ font-size:12px; color:#666; margin-top:20px }
+    @media(max-width:768px){ .container{ grid-template-columns:1fr } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="circle">V</div>
+      <h1>Vinho na Mesa — Admin</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="card">
+      <h3>🔐 Login do Administrador</h3>
+      <input type="password" id="adminPass" placeholder="Digite a senha do admin">
+      <button id="loginBtn">Entrar</button>
+      <div id="loginMsg" class="small"></div>
+    </section>
+
+    <main class="card" id="mainPanel" style="display:none">
+      <h3>Criar nova entrevista</h3>
+      <div style="margin-top:10px">
+        <label>Título</label>
+        <input id="title" type="text" placeholder="Nome do episódio (ex: Bia & Convidado)"/>
+      </div>
+      <div style="margin-top:10px">
+        <label>Nome do artista</label>
+        <input id="artistName" type="text" placeholder="Nome do artista"/>
+      </div>
+      <div style="margin-top:10px">
+        <label>E-mail do artista (opcional)</label>
+        <input id="artistEmail" type="email" placeholder="email@exemplo.com"/>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button id="createBtn">Criar entrevista</button>
+        <button class="secondary" id="loadBtn">Carregar entrevista (ID)</button>
+        <button id="newInterviewBtn" class="secondary">+ Nova</button>
+      </div>
+
+      <div id="createResult" class="small"></div>
+
+      <hr style="margin:14px 0;border-color:#1b1b1b">
+
+      <div id="recSection" style="display:none">
+        <h3>Gravar perguntas</h3>
+        <div class="video-preview" id="preview">Nenhuma câmera conectada</div>
+        <div style="margin-top:8px">
+          <button id="startRec">Iniciar gravação</button>
+          <button id="stopRec" disabled>Parar</button>
+          <button id="uploadRec" disabled>Enviar pergunta</button>
+        </div>
+        <div class="small" id="recStatus">Status: aguardando</div>
+      </div>
+
+      <hr style="margin:14px 0;border-color:#1b1b1b">
+
+      <div id="managementSection" style="display:none">
+        <h3>Gerenciar entrevista</h3>
+        
+        <div style="margin-top:12px">
+          <label>Capa da Entrevista (opcional)</label>
+          <input type="file" id="thumbnailFile" accept="image/*">
+          <button id="uploadThumbnailBtn" style="margin-top:8px">Enviar Capa</button>
+          <div id="thumbnailStatus" class="small"></div>
+          <img id="thumbnailPreview" src="" alt="Pré-visualização da capa" style="display:none; max-width:100%; height:auto; margin-top:10px; border-radius:8px;">
+        </div>
+        
+        <div style="margin-top:12px">
+          <div id="interviewStatus" class="small">Status: </div>
+          <button id="toggleStatusBtn" class="secondary">Publicar/Ocultar</button>
+        </div>
+        
+        <div style="margin-top:12px">
+          <button id="inviteBtn">Gerar link de convite</button>
+          <div id="inviteArea" class="small"></div>
+        </div>
+        
+        <div style="margin-top:12px">
+          <button id="viewerLinkBtn">Gerar link de visualização</button>
+          <div id="viewerLinkArea" class="small"></div>
+        </div>
+        
+        <div style="margin-top:12px">
+          <button id="stitchBtn">Unificar vídeos (stitch)</button>
+          <div id="stitchResult" class="small"></div>
+        </div>
+        
+        <div style="margin-top:12px">
+          <button id="deleteMediaBtn" class="secondary">Deletar todas as mídias</button>
+        </div>
+      </div>
+
+      <hr style="margin:14px 0;border-color:#1b1b1b">
+
+      <footer>
+        <div>Instruções rápidas:</div>
+        <div>- Crie a entrevista, grave & envie perguntas.</div>
+        <div>- Gere o link e envie para o artista. Ele responderá em sequência.</div>
+        <div>- Caso queira, usar o endpoint /stitch para criar o vídeo final (servidor precisa de ffmpeg).</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    let interview = null;
+    let mediaStream = null;
+    let recorder = null;
+    let recordedChunks = [];
+    let currentBlob = null;
+    let adminAuthToken = null;
+
+    // Check if already logged in
+    const storedToken = localStorage.getItem('adminToken');
+    if (storedToken) {
+      verifyToken(storedToken);
+    }
+
+    async function verifyToken(token) {
+      try {
+        const res = await fetch('/api/admin/interviews', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(r => r.json());
+        
+        if (res.ok) {
+          adminAuthToken = token;
+          document.querySelector('#mainPanel').style.display = 'block';
+          document.querySelector('section.card').style.display = 'none';
+          loadInterviews();
+          
+          // Inicializar a câmera automaticamente após login
+          setTimeout(initCamera, 500);
+        } else {
+          localStorage.removeItem('adminToken');
+        }
+      } catch (err) {
+        localStorage.removeItem('adminToken');
+      }
+    }
+    
+    // Inicializar câmera automaticamente quando a página carregar (se já estiver logado)
+    document.addEventListener('DOMContentLoaded', () => {
+      const storedToken = localStorage.getItem('adminToken');
+      if (storedToken) {
+        setTimeout(() => initCamera(), 1000);
+      }
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const password = document.getElementById('adminPass').value.trim();
+      const msg = document.getElementById('loginMsg');
+      msg.innerText = '';
+      
+      if (!password) {
+        msg.innerText = '⚠️ Informe a senha.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        }).then(r => r.json());
+
+        if (res.ok && res.token) {
+          adminAuthToken = res.token;
+          localStorage.setItem('adminToken', res.token);
+          document.querySelector('#mainPanel').style.display = 'block';
+          document.querySelector('section.card').style.display = 'none';
+          msg.innerText = '✅ Login realizado com sucesso!';
+        } else {
+          msg.innerText = '❌ Senha incorreta.';
+        }
+      } catch (err) {
+        msg.innerText = '⚠️ Erro de conexão.';
+      }
+    });
+
+    // Create interview
+    document.getElementById('createBtn').addEventListener('click', async () => {
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+      const title = document.getElementById('title').value || 'Vinho na Mesa';
+      const interviewerName = 'Entrevistador';
+      const artistEmail = document.getElementById('artistEmail').value;
+      const artistName = document.getElementById('artistName').value || '';
+      
+      const res = await fetch('/api/interviews', {
+        method:'POST', 
+        headers: {
+          'Content-Type':'application/json', 
+          'Authorization': `Bearer ${adminAuthToken}`
+        },
+        body: JSON.stringify({ title, interviewerName, artistEmail, artistName })
+      }).then(r=>r.json());
+      
+      if(res.ok){
+        interview = res.interview;
+        document.getElementById('createResult').innerText = 'Entrevista criada. ID: ' + interview._id;
+        document.getElementById('recSection').style.display = 'block';
+        document.getElementById('managementSection').style.display = 'block';
+        renderManagementSection();
+        loadInterviews();
+
+        // Limpar campos do formulário
+        document.getElementById('title').value = '';
+        document.getElementById('artistName').value = '';
+        document.getElementById('artistEmail').value = '';
+      } else {
+        alert('Erro ao criar: ' + res.error);
+      }
+    });
+
+    // Management section rendering
+    function renderManagementSection() {
+      if (!interview) return;
+
+      const thumbPreview = document.getElementById('thumbnailPreview');
+      if (interview.thumbnailUrl) {
+        thumbPreview.src = interview.thumbnailUrl;
+        thumbPreview.style.display = 'block';
+      } else {
+        thumbPreview.style.display = 'none';
+      }
+
+      const statusDiv = document.getElementById('interviewStatus');
+      statusDiv.textContent = `Status atual: ${interview.status === 'draft' ? 'Rascunho' : 'Publicado'}`;
+
+      const toggleBtn = document.getElementById('toggleStatusBtn');
+      if (interview.status === 'draft') {
+        toggleBtn.textContent = 'Publicar Entrevista';
+      } else {
+        toggleBtn.textContent = 'Ocultar (tornar rascunho)';
+      }
+    }
+
+    // Toggle interview status
+    document.getElementById('toggleStatusBtn').addEventListener('click', async () => {
+      if (!interview || !adminAuthToken) return;
+      
+      const newStatus = interview.status === 'draft' ? 'published' : 'draft';
+      
+      try {
+        const res = await fetch(`/api/interviews/${interview._id}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminAuthToken}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        }).then(r => r.json());
+        
+        if (res.ok) {
+          interview = res.interview;
+          renderManagementSection();
+          alert('Status atualizado com sucesso!');
+        } else {
+          alert('Erro ao atualizar status: ' + res.error);
+        }
+      } catch (err) {
+        alert('Erro de conexão ao atualizar status.');
+      }
+    });
+
+    // Delete all media
+    document.getElementById('deleteMediaBtn').addEventListener('click', async () => {
+      if (!interview || !adminAuthToken) return;
+      
+      if (!confirm('Tem certeza que deseja deletar todas as mídias desta entrevista? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/interviews/${interview._id}/media`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        }).then(r => r.json());
+        
+        if (res.ok) {
+          alert('Todas as mídias foram deletadas com sucesso!');
+          // Reload interview to reflect changes
+          loadInterviewById(interview._id);
+        } else {
+          alert('Erro ao deletar mídias: ' + res.error);
+        }
+      } catch (err) {
+        alert('Erro de conexão ao deletar mídias.');
+      }
+    });
+
+    // Load interview by ID
+    document.getElementById('loadBtn').addEventListener('click', async () => {
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+      const id = prompt('Cole o ID da entrevista:');
+      if(!id) return;
+      loadInterviewById(id);
+    });
+
+    async function loadInterviewById(id) {
+      if (!id) return;
+      try {
+        const res = await fetch(`/api/interviews/${id}`, {
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        }).then(r => r.json());
+        if (res.ok) {
+          interview = res.interview;
+          document.getElementById('createResult').innerText = 'Entrevista carregada: ' + interview._id;
+          document.getElementById('recSection').style.display = 'block';
+          document.getElementById('managementSection').style.display = 'block';
+          renderManagementSection();
+          // Opcional: rolar a tela para a seção de gravação
+          document.getElementById('recSection').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          alert('Entrevista não encontrada: ' + res.error);
+        }
+      } catch (err) {
+        alert('Erro ao carregar');
+      }
+    }
+
+    // Reset to new interview
+    function resetToNewInterview() {
+      interview = null;
+      
+      // Limpa os campos de input
+      document.getElementById('title').value = '';
+      document.getElementById('artistName').value = '';
+      document.getElementById('artistEmail').value = '';
+      
+      // Limpa as áreas de resultado e status
+      document.getElementById('createResult').innerText = '';
+      document.getElementById('stitchResult').innerText = '';
+      document.getElementById('inviteArea').innerHTML = '';
+      document.getElementById('viewerLinkArea').innerHTML = '';
+      document.getElementById('thumbnailStatus').innerText = '';
+      document.getElementById('recStatus').innerText = 'Status: aguardando';
+      document.getElementById('thumbnailPreview').style.display = 'none';
+      document.getElementById('thumbnailFile').value = '';
+      
+      // Esconde a seção de gravação e gerenciamento
+      document.getElementById('recSection').style.display = 'none';
+      document.getElementById('managementSection').style.display = 'none';
+      
+      // Reseta os botões de gravação
+      document.getElementById('startRec').disabled = false;
+      document.getElementById('stopRec').disabled = true;
+      document.getElementById('uploadRec').disabled = true;
+      currentBlob = null;
+    }
+    
+    // Inicializar câmera para gravação
+    async function initCamera() {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.srcObject = mediaStream;
+        video.style.width = '100%';
+        video.style.height = '300px';
+        
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '';
+        preview.appendChild(video);
+        document.getElementById('recStatus').innerText = 'Câmera conectada';
+      } catch (err) {
+        document.getElementById('preview').innerText = 'Permita câmera e microfone';
+        document.getElementById('recStatus').innerText = 'Erro ao acessar câmera: ' + err.message;
+      }
+    }
+    
+    // Iniciar gravação
+    document.getElementById('startRec').addEventListener('click', async () => {
+      if (!mediaStream) {
+        // Tentar inicializar a câmera se ainda não estiver ativa
+        await initCamera();
+        if (!mediaStream) return;
+      }
+      
+      recordedChunks = [];
+      recorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm; codecs=vp9' });
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        currentBlob = new Blob(recordedChunks, { type: 'video/webm' });
+        document.getElementById('recStatus').innerText = 'Gravação finalizada. Pronto para enviar.';
+        document.getElementById('uploadRec').disabled = false;
+        
+        // Criar pré-visualização do vídeo gravado
+        const videoPreview = document.createElement('video');
+        videoPreview.controls = true;
+        videoPreview.autoplay = true;
+        videoPreview.style.width = '100%';
+        videoPreview.style.height = '300px';
+        videoPreview.style.marginTop = '10px';
+        
+        const previewUrl = URL.createObjectURL(currentBlob);
+        videoPreview.src = previewUrl;
+        
+        // Adicionar pré-visualização abaixo do status
+        const statusElement = document.getElementById('recStatus');
+        statusElement.parentNode.insertBefore(videoPreview, statusElement.nextSibling);
+      };
+      
+      recorder.start();
+      document.getElementById('startRec').disabled = true;
+      document.getElementById('stopRec').disabled = false;
+      document.getElementById('recStatus').innerText = 'Gravando...';
+      
+      // Remover pré-visualização anterior se existir
+      const existingPreview = document.querySelector('#recSection video');
+      if (existingPreview && existingPreview !== document.querySelector('#preview video')) {
+        existingPreview.remove();
+      }
+    });
+    
+    // Parar gravação
+    document.getElementById('stopRec').addEventListener('click', () => {
+      if (recorder && recorder.state === 'recording') {
+        recorder.stop();
+      }
+      document.getElementById('startRec').disabled = false;
+      document.getElementById('stopRec').disabled = true;
+    });
+    
+    // Enviar gravação
+    document.getElementById('uploadRec').addEventListener('click', async () => {
+      if (!currentBlob || !interview || !adminAuthToken) return;
+      
+      document.getElementById('recStatus').innerText = 'Enviando gravação...';
+      document.getElementById('uploadRec').disabled = true;
+
+      try {
+        const nextOrder = (interview.questions && interview.questions.length ? interview.questions.length : 0) + 1;
+        const fd = new FormData();
+        fd.append('video', currentBlob, `question-${nextOrder}-${Date.now()}.webm`);
+        fd.append('order', String(nextOrder));
+
+        const res = await fetch(`/api/interviews/${interview._id}/questions`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` },
+          body: fd
+        }).then(r => r.json());
+
+        if (res.ok && res.question) {
+          interview.questions = Array.isArray(interview.questions) ? interview.questions : [];
+          interview.questions.push(res.question);
+          interview.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+          document.getElementById('recStatus').innerText = `Pergunta ${res.question.order} enviada com sucesso!`;
+        } else {
+          document.getElementById('recStatus').innerText = 'Erro ao enviar: ' + (res.error || 'Falha no upload');
+        }
+      } catch (err) {
+        document.getElementById('recStatus').innerText = 'Erro de conexão ao enviar pergunta.';
+      } finally {
+        recordedChunks = [];
+        currentBlob = null;
+      }
+    });
+    
+    // Event listener para o novo botão
+    document.getElementById('newInterviewBtn').addEventListener('click', resetToNewInterview);
+
+    // Load interviews list
+    async function loadInterviews() {
+      if (!adminAuthToken) {
+        return;
+      }
+      // This function can be expanded to show a list of interviews
+    }
+
+    // Invite generation
+    document.getElementById('inviteBtn').addEventListener('click', async () => {
+      if(!interview) return alert('Crie a entrevista');
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+      const res = await fetch(`/api/interviews/${interview._id}/invite`, { 
+        method:'POST',
+        headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+      }).then(r=>r.json());
+      if(res.ok){
+        document.getElementById('inviteArea').innerHTML = `<div>Link de convite: <input style="width:60%" value="${res.link}" id="inviteLink" /> <button class="copy" onclick="copyInvite()">Copiar</button></div>`;
+      } else {
+        alert('Erro gerando link: ' + res.error);
+      }
+    });
+
+    // Viewer link generation
+    document.getElementById('viewerLinkBtn').addEventListener('click', async () => {
+      if(!interview) return alert('Crie a entrevista');
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+      const res = await fetch(`/api/interviews/${interview._id}/viewer-link`, { 
+        method:'POST',
+        headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+      }).then(r=>r.json());
+      if(res.ok){
+        document.getElementById('viewerLinkArea').innerHTML = `<div>Link de visualização: <input style="width:60%" value="${res.link}" id="viewerLink" /> <button class="copy" onclick="copyViewerLink()">Copiar</button></div>`;
+      } else {
+        alert('Erro gerando link: ' + res.error);
+      }
+    });
+
+    // Copy functions
+    window.copyInvite = () => {
+      const input = document.getElementById('inviteLink');
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        alert('Link copiado!');
+      }
+    };
+
+    window.copyViewerLink = () => {
+      const input = document.getElementById('viewerLink');
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        alert('Link copiado!');
+      }
+    };
+
+    // Thumbnail upload
+    document.getElementById('uploadThumbnailBtn').addEventListener('click', async () => {
+      if (!interview) return alert('Carregue uma entrevista primeiro.');
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+
+      const fileInput = document.getElementById('thumbnailFile');
+      const file = fileInput.files[0];
+      if (!file) return alert('Selecione um arquivo de imagem para a capa.');
+
+      const statusDiv = document.getElementById('thumbnailStatus');
+      statusDiv.textContent = 'Enviando...';
+
+      const fd = new FormData();
+      fd.append('thumbnail', file);
+
+      try {
+        const res = await fetch(`/api/interviews/${interview._id}/thumbnail`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` },
+          body: fd
+        }).then(r => r.json());
+
+        if (res.ok) {
+          statusDiv.textContent = '✅ Capa enviada com sucesso!';
+          // Update interview object with new thumbnail URL
+          interview.thumbnailUrl = res.thumbnailUrl;
+          renderManagementSection();
+        } else {
+          statusDiv.textContent = '❌ Erro: ' + (res.error || 'Falha no upload');
+        }
+      } catch (err) {
+        statusDiv.textContent = '❌ Erro de conexão';
+        console.error('Erro ao enviar capa:', err);
+      }
+    });
+
+    // Stitch videos
+    document.getElementById('stitchBtn').addEventListener('click', async () => {
+      if (!interview) return alert('Crie a entrevista');
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+      
+      document.getElementById('stitchBtn').disabled = true;
+      document.getElementById('stitchResult').innerText = '⏳ Processando...';
+      
+      try {
+        const res = await fetch(`/api/interviews/${interview._id}/stitch`, { 
+          method:'POST'
+        }).then(r=>r.json());
+        
+        if(res.ok){
+          document.getElementById('stitchResult').innerText = res.message;
+        } else {
+          document.getElementById('stitchResult').innerText = 'Erro: ' + res.error;
+        }
+      } catch(err) {
+        document.getElementById('stitchResult').innerText = 'Erro de conexão';
+      } finally {
+        document.getElementById('stitchBtn').disabled = false;
+      }
+    });
+    
+    // Registrar Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('[SW] Service Worker registrado com sucesso:', registration.scope);
+          })
+          .catch(error => {
+            console.log('[SW] Falha ao registrar Service Worker:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

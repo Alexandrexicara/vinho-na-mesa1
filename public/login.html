@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Vinho na Mesa</title>
+  <meta name="description" content="Área de login para administradores do sistema Vinho na Mesa">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Ícones -->
+  <link rel="icon" type="image/png" sizes="48x48" href="/img/logo_vinhonamesa.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/img/logo_vinhonamesa.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/logo_vinhonamesa.png">
+  
+  <!-- iOS Safari -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vinho na Mesa">
+  <link rel="apple-touch-icon" href="/img/logo_vinhonamesa.png">
+  
+  <!-- Microsoft -->
+  <meta name="msapplication-TileImage" content="/img/logo_vinhonamesa.png">
+  <meta name="msapplication-TileColor" content="#5d1326">
+  
+  <style>
+    :root {
+      --wine: #5d1326;
+      --gold: #c9a24a;
+      --bg: #0b0b0b;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #000, #1a0b0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Inter", Arial, sans-serif;
+      color: #fff;
+    }
+    .login-box {
+      background: #121212;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+    }
+    .login-box img {
+      height: 70px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    p {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #1e1e1e;
+      color: #fff;
+      font-size: 15px;
+    }
+    input:focus {
+      outline: 2px solid var(--wine);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--wine);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #7a1b34;
+    }
+    #msg {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--gold);
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" />
+    <h2>Área Administrativa</h2>
+    <p>Digite a senha para acessar o painel.</p>
+    <input id="password" type="password" placeholder="Senha do administrador" />
+    <button onclick="login()">Entrar</button>
+    <div id="msg"></div>
+    <div class="footer">© 2025 Vinho na Mesa</div>
+  </div>
+
+  <script>
+    async function login() {
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
+      msg.innerText = '';
+      if (!password) {
+        msg.innerText = '⚠️ Informe a senha.';
+        return;
+      }
+
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      }).then(r => r.json()).catch(() => ({ ok: false }));
+
+      if (res.ok) {
+        localStorage.setItem('adminToken', res.token);
+        msg.innerText = '✅ Acesso concedido. Redirecionando...';
+        setTimeout(() => {
+          window.location.href = '/admin.html?token=' + res.token;
+        }, 1000);
+      } else {
+        msg.innerText = '❌ Senha incorreta.';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') login();
+    });
+  </script>
+</body>
+</html>

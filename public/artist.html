@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vinho na Mesa — Área do Artista</title>
+  <meta name="description" content="Área do artista para responder entrevistas assíncronas">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Ícones -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/img/logo_vinhonamesa.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/logo_vinhonamesa.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/logo_vinhonamesa.png">
+    
+    <!-- iOS Safari -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vinho na Mesa">
+    <link rel="apple-touch-icon" href="/img/logo_vinhonamesa.png">
+    
+    <!-- Microsoft -->
+    <meta name="msapplication-TileImage" content="/img/logo_vinhonamesa.png">
+    <meta name="msapplication-TileColor" content="#5d1326">
+    
+    <style>
+    :root{--bg:#0b0b0b;--wine:#5d1326;--gold:#c9a24a;--muted:#d9d9d9;--card:#121212;--radius:12px}
+    body{margin:0;background:linear-gradient(0deg,#050505,#0b0b0b);color:var(--muted);font-family:Inter,Arial}
+    .wrap{max-width:920px;margin:28px auto;padding:18px}
+    .card{background:var(--card);padding:16px;border-radius:12px}
+    h2{margin:0 0 8px 0}
+    .video-preview{width:100%;height:300px;background:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#666}
+    button{background:var(--wine);color:white;padding:10px 12px;border-radius:10px;border:none;cursor:pointer}
+    .secondary{background:transparent;border:1px solid #222;padding:8px 10px}
+    .small{font-size:13px;color:#aaa}
+    
+    @media(max-width:1200px){
+      div[style*="grid-template-columns:250px 1fr 250px"]{grid-template-columns:1fr !important}
+      div[style*="flex-direction:column"]{display:grid !important;grid-template-columns:repeat(2,1fr) !important}
+    }
+  </style>
+</head>
+<body>
+  <div style="display:grid;grid-template-columns:250px 1fr 250px;gap:20px;max-width:1600px;margin:0 auto">
+    <!-- Anúncios Laterais Esquerda -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
+        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
+        <a href="https://linkdopatrocinador.com" target="_blank">
+          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
+        </a>
+      </div>
+      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
+        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
+        <a href="https://linkdopatrocinador.com" target="_blank">
+          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
+        </a>
+      </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div>
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:24px">
+        <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" style="height:60px"/>
+      </div>
+
+      <div class="card">
+      <h2>Bem-vindo(a) ao Vinho na Mesa</h2>
+      <div id="intro" class="small">Carregando entrevista...</div>
+
+      <div id="questionArea" style="display:none;margin-top:12px">
+        <!-- Vídeo da Pergunta -->
+        <div style="margin-bottom:12px">
+          <h4 style="color:var(--gold);margin:0 0 8px 0">📹 Assistir Pergunta</h4>
+          <div id="questionVideo" style="width:100%;height:200px;background:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#666">
+            Carregando vídeo da pergunta...
+          </div>
+        </div>
+
+        <!-- Sua Câmera para Resposta -->
+        <div style="margin-top:16px">
+          <h4 style="color:var(--gold);margin:0 0 8px 0">🎬 Sua Resposta</h4>
+          <div class="video-preview" id="preview">Carregando câmera...</div>
+        </div>
+
+        <div style="margin-top:8px">
+          <div id="qtitle" class="small"></div>
+          <div style="margin-top:8px">
+            <button id="startRec">Iniciar gravação</button>
+            <button id="stopRec" disabled>Parar</button>
+            <button id="sendAnswer" disabled>Enviar resposta</button>
+          </div>
+          <div id="status" class="small" style="margin-top:8px">Status: pronto</div>
+          <div style="margin-top:12px">
+            <button id="nextBtn" class="secondary">Pular / Próxima pergunta</button>
+          </div>
+        </div>
+
+        <!-- Anúncios Horizontais Embaixo -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+          <div style="background:#0a0a0a;border-radius:12px;padding:12px;text-align:center;border:1px solid #222">
+            <div style="font-size:11px;color:#666;text-transform:uppercase">Anúncio</div>
+            <div style="height:150px;background:#0f0f0f;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#444;margin-top:8px">
+              <div>Área para anúncio</div>
+            </div>
+          </div>
+          <div style="background:#0a0a0a;border-radius:12px;padding:12px;text-align:center;border:1px solid #222">
+            <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
+            <a href="https://linkdopatrocinador.com" target="_blank">
+              <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div id="doneArea" style="display:none;margin-top:12px">
+        <h3>Entrevista finalizada</h3>
+        <div id="thanks" class="small">Obrigado por gravar!</div>
+      </div>
+    </div>
+
+    <!-- Anúncios Laterais Direita -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
+        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
+        <a href="https://linkdopatrocinador.com" target="_blank">
+          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
+        </a>
+      </div>
+      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
+        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
+        <a href="https://linkdopatrocinador.com" target="_blank">
+          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
+        </a>
+      </div>
+    </div>
+  </div>
+
+<script>
+let token = new URLSearchParams(location.search).get('token');
+let interview = null;
+let mediaStream = null;
+let recorder = null;
+let chunks = [];
+let blob = null;
+let currentQuestionIndex = 0;
+
+async function init(){
+  if(!token){ document.getElementById('intro').innerText = 'Token não informado.'; return; }
+  const res = await fetch(`/api/interviews/by-token/${token}`).then(r=>r.json());
+  if(!res.ok){ document.getElementById('intro').innerText = 'Entrevista não encontrada'; return; }
+  interview = res.interview;
+  document.getElementById('intro').innerText = `Entrevista: ${interview.title} — Convidado: ${interview.artistName || 'artista'}`;
+  await initCamera();
+  showNextQuestion();
+}
+async function initCamera(){
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+    const v = document.createElement('video');
+    v.autoplay = true; v.muted = true; v.playsInline = true;
+    v.srcObject = mediaStream; v.style.width = '100%'; v.style.height = '300px';
+    const prev = document.getElementById('preview');
+    prev.innerHTML = '';
+    prev.appendChild(v);
+  } catch(err){
+    document.getElementById('preview').innerText = 'Permita câmera e microfone';
+  }
+}
+
+function showNextQuestion(){
+  const qs = (interview.questions || []).sort((a,b)=>a.order-b.order);
+  if(qs.length === 0){
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('doneArea').style.display = 'block';
+    document.getElementById('thanks').innerText = 'Nenhuma pergunta foi adicionada ainda. Aguarde o administrador adicionar perguntas a esta entrevista.';
+    return;
+  }
+  if(currentQuestionIndex >= qs.length){
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('doneArea').style.display = 'block';
+    document.getElementById('thanks').innerText = 'Obrigado por gravar!';
+    return;
+  }
+  const q = qs[currentQuestionIndex];
+  document.getElementById('questionArea').style.display = 'block';
+  document.getElementById('qtitle').innerHTML = `Pergunta ${q.order} — <a href="${q.url}" target="_blank">Ver em nova aba</a>`;
+  document.getElementById('status').innerText = `Respondendo pergunta ${q.order} de ${qs.length}`;
+  
+  // Mostrar vídeo da pergunta diretamente na página
+  const questionVideoDiv = document.getElementById('questionVideo');
+  questionVideoDiv.innerHTML = `<video controls autoplay style="width:100%;height:200px;border-radius:8px;"><source src="${q.url}" type="video/webm"></video>`;
+}
+
+document.getElementById('startRec').addEventListener('click', () => {
+  if(!mediaStream) return alert('Permita câmera');
+  chunks = [];
+  recorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm; codecs=vp9' });
+  recorder.ondataavailable = e =>{ if(e.data.size>0) chunks.push(e.data) };
+  recorder.onstop = () => {
+    blob = new Blob(chunks, { type: 'video/webm' });
+    document.getElementById('status').innerText = 'Gravação pronta para envio';
+    document.getElementById('sendAnswer').disabled = false;
+  };
+  recorder.start();
+  document.getElementById('startRec').disabled = true;
+  document.getElementById('stopRec').disabled = false;
+  document.getElementById('status').innerText = 'Gravando...';
+});
+document.getElementById('stopRec').addEventListener('click', ()=> {
+  if(recorder && recorder.state==='recording') recorder.stop();
+  document.getElementById('startRec').disabled = false;
+  document.getElementById('stopRec').disabled = true;
+});
+
+document.getElementById('sendAnswer').addEventListener('click', async ()=> {
+  if(!blob) return alert('Grave sua resposta primeiro');
+  const qs = (interview.questions || []).sort((a,b)=>a.order-b.order);
+  const q = qs[currentQuestionIndex];
+  const fd = new FormData();
+  fd.append('video', blob, `answer-${Date.now()}.webm`);
+  fd.append('questionOrder', q.order);
+  const res = await fetch(`/api/interviews/${interview._id}/answers`, { method:'POST', body: fd }).then(r=>r.json());
+  if(res.ok){
+    document.getElementById('status').innerText = 'Resposta enviada com sucesso';
+    blob = null;
+    document.getElementById('sendAnswer').disabled = true;
+    currentQuestionIndex++;
+    setTimeout(()=> showNextQuestion(), 800);
+  } else {
+    document.getElementById('status').innerText = 'Erro ao enviar';
+  }
+});
+
+document.getElementById('nextBtn').addEventListener('click', ()=> {
+  currentQuestionIndex++;
+  showNextQuestion();
+});
+
+init();
+</script>
+</body>
+</html>
