@@ -83,10 +83,12 @@
         <label>E-mail do artista (opcional)</label>
         <input id="artistEmail" type="email" placeholder="email@exemplo.com"/>
       </div>
-      <div style="margin-top:12px;display:flex;gap:8px">
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
         <button id="createBtn">Criar entrevista</button>
-        <button class="secondary" id="loadBtn">Carregar entrevista (ID)</button>
+        <button id="loadBtn">Carregar entrevista (ID)</button>
         <button id="newInterviewBtn" class="secondary">+ Nova</button>
+        <button id="adsBtn" class="secondary">📺 Anúncios</button>
+        <button id="searchBtn" class="secondary">🔍 Buscar</button>
       </div>
 
       <div id="createResult" class="small"></div>
@@ -144,6 +146,66 @@
 
       <hr style="margin:14px 0;border-color:#1b1b1b">
 
+      <!-- Seção de Anúncios -->
+      <div id="adsSection" style="display:none">
+        <h3>📺 Gerenciar Anúncios</h3>
+        
+        <div style="margin-top:12px">
+          <label>Slot do Anúncio</label>
+          <select id="adSlot" style="width:100%; padding:10px; border-radius:8px; border:1px solid #222; background:#0a0a0a; color:var(--muted)">
+            <option value="">Selecione um slot...</option>
+            <option value="left-1">Lateral Esquerdo 1</option>
+            <option value="left-2">Lateral Esquerdo 2</option>
+            <option value="right-1">Lateral Direito 1</option>
+            <option value="right-2">Lateral Direito 2</option>
+            <option value="h-1">Horizontal 1</option>
+            <option value="h-2">Horizontal 2</option>
+            <option value="popup">Popup</option>
+          </select>
+        </div>
+        
+        <div style="margin-top:12px">
+          <label>Título do Anúncio (opcional)</label>
+          <input type="text" id="adTitle" placeholder="Nome do anunciante ou campanha">
+        </div>
+        
+        <div style="margin-top:12px">
+          <label>URL de Destino (opcional)</label>
+          <input type="url" id="adLinkUrl" placeholder="https://exemplo.com">
+        </div>
+        
+        <div style="margin-top:12px">
+          <label>Imagem do Anúncio</label>
+          <input type="file" id="adImage" accept="image/*">
+          <button id="uploadAdBtn" style="margin-top:8px">Enviar Anúncio</button>
+          <div id="adStatus" class="small"></div>
+        </div>
+        
+        <div style="margin-top:16px">
+          <button id="listAdsBtn" class="secondary">Listar Anúncios Existentes</button>
+          <button id="clearAdsBtn" class="secondary" style="background:#8b0000;">Limpar Todos Anúncios</button>
+        </div>
+        
+        <div id="adsList" style="margin-top:16px;"></div>
+      </div>
+
+      <hr style="margin:14px 0;border-color:#1b1b1b">
+
+      <!-- Seção de Busca de Entrevistas -->
+      <div id="searchSection" style="display:none">
+        <h3>🔍 Buscar Entrevistas</h3>
+        
+        <div style="margin-top:12px">
+          <input type="text" id="searchInput" placeholder="Digite título, artista ou ID..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #222; background:#0a0a0a; color:var(--muted)">
+          <button id="searchBtn" style="margin-top:8px">🔍 Buscar</button>
+          <button id="clearSearchBtn" class="secondary" style="margin-top:8px">Limpar Busca</button>
+        </div>
+        
+        <div id="searchResults" style="margin-top:16px;"></div>
+      </div>
+
+      <hr style="margin:14px 0;border-color:#1b1b1b">
+
       <footer>
         <div>Instruções rápidas:</div>
         <div>- Crie a entrevista, grave & envie perguntas.</div>
@@ -168,10 +230,13 @@
     }
 
     async function verifyToken(token) {
+      console.log('Verificando token armazenado:', token);
       try {
         const res = await fetch('/api/admin/interviews', {
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(r => r.json());
+        
+        console.log('Resposta da verificação:', res);
         
         if (res.ok) {
           adminAuthToken = token;
@@ -179,12 +244,18 @@
           document.querySelector('section.card').style.display = 'none';
           loadInterviews();
           
+          // Mostrar seções adicionais
+          document.getElementById('adsSection').style.display = 'block';
+          document.getElementById('searchSection').style.display = 'block';
+          
           // Inicializar a câmera automaticamente após login
           setTimeout(initCamera, 500);
         } else {
+          console.error('Token inválido:', res);
           localStorage.removeItem('adminToken');
         }
       } catch (err) {
+        console.error('Erro na verificação:', err);
         localStorage.removeItem('adminToken');
       }
     }
@@ -217,10 +288,16 @@
         if (res.ok && res.token) {
           adminAuthToken = res.token;
           localStorage.setItem('adminToken', res.token);
+          console.log('Token recebido e armazenado:', adminAuthToken);
           document.querySelector('#mainPanel').style.display = 'block';
           document.querySelector('section.card').style.display = 'none';
           msg.innerText = '✅ Login realizado com sucesso!';
+          
+          // Mostrar seções adicionais
+          document.getElementById('adsSection').style.display = 'block';
+          document.getElementById('searchSection').style.display = 'block';
         } else {
+          console.error('Falha no login:', res);
           msg.innerText = '❌ Senha incorreta.';
         }
       } catch (err) {
@@ -349,25 +426,101 @@
 
     async function loadInterviewById(id) {
       if (!id) return;
+      console.log('Carregando entrevista ID:', id);
+      console.log('Token disponível:', adminAuthToken ? 'Sim' : 'Não');
+      
       try {
-        const res = await fetch(`/api/interviews/${id}`, {
+        const response = await fetch(`/api/interviews/${id}`, {
           headers: { 'Authorization': `Bearer ${adminAuthToken}` }
-        }).then(r => r.json());
+        });
+        
+        console.log('Status da resposta:', response.status);
+        console.log('Headers da resposta:', response.headers);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro na resposta (texto):', errorText);
+          throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        
+        const res = await response.json();
+        console.log('Resposta da API:', res);
+        
         if (res.ok) {
           interview = res.interview;
-          document.getElementById('createResult').innerText = 'Entrevista carregada: ' + interview._id;
+          document.getElementById('createResult').innerText = '✅ Entrevista carregada: ' + interview._id;
           document.getElementById('recSection').style.display = 'block';
           document.getElementById('managementSection').style.display = 'block';
           renderManagementSection();
+          
+          // Mostrar informações da entrevista
+          document.getElementById('title').value = interview.title || '';
+          document.getElementById('artistName').value = interview.artistName || '';
+          document.getElementById('artistEmail').value = interview.artistEmail || '';
+          
           // Opcional: rolar a tela para a seção de gravação
           document.getElementById('recSection').scrollIntoView({ behavior: 'smooth' });
         } else {
+          console.error('Erro na resposta:', res);
           alert('Entrevista não encontrada: ' + res.error);
         }
       } catch (err) {
-        alert('Erro ao carregar');
+        console.error('Erro na requisição:', err);
+        alert('Erro ao carregar entrevista: ' + err.message);
       }
-    }
+    };
+
+    // Deletar entrevista
+    window.deleteInterview = async (id) => {
+      if (!confirm(`Tem certeza que deseja APAGAR permanentemente a entrevista "${id}"? Esta ação não pode ser desfeita e deletará todas as mídias, perguntas e respostas associadas.`)) {
+        return;
+      }
+      
+      console.log('Tentando apagar entrevista:', id);
+      
+      try {
+        const response = await fetch(`/api/interviews/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        });
+        
+        console.log('Status da resposta:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro na resposta (texto):', errorText);
+          
+          if (response.status === 404) {
+            alert('❌ Erro: Entrevista não encontrada. Ela pode ter sido apagada anteriormente.');
+            // Recarregar lista para mostrar estado atual
+            loadInterviews();
+            return;
+          }
+          
+          throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+        
+        const res = await response.json();
+        console.log('Resposta do servidor:', res);
+        
+        if (res.ok) {
+          alert('✅ Entrevista apagada com sucesso!');
+          
+          // Se era a entrevista carregada, limpar tudo
+          if (window.interview && window.interview._id === id) {
+            resetToNewInterview();
+          }
+          
+          // Recarregar lista
+          loadInterviews();
+        } else {
+          alert('❌ Erro ao apagar: ' + (res.error || 'Falha na requisição'));
+        }
+      } catch (err) {
+        console.error('Erro ao apagar entrevista:', err);
+        alert('❌ Erro de conexão ao apagar entrevista: ' + err.message);
+      }
+    };
 
     // Reset to new interview
     function resetToNewInterview() {
@@ -523,7 +676,81 @@
       if (!adminAuthToken) {
         return;
       }
-      // This function can be expanded to show a list of interviews
+      
+      try {
+        console.log('Carregando lista de entrevistas...');
+        const response = await fetch('/api/admin/interviews', {
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro ao carregar entrevistas:', errorText);
+          return;
+        }
+        
+        const res = await response.json();
+        console.log('Entrevistas carregadas:', res);
+        
+        if (res.ok && res.data && res.data.length > 0) {
+          displayInterviewsList(res.data);
+        } else {
+          displayInterviewsList([]);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar entrevistas:', err);
+        displayInterviewsList([]);
+      }
+    }
+    
+    function displayInterviewsList(interviews) {
+      const container = document.getElementById('interviewsList');
+      if (!container) {
+        // Criar container para a lista se não existir
+        const listContainer = document.createElement('div');
+        listContainer.id = 'interviewsList';
+        listContainer.style.cssText = 'margin-top: 20px;';
+        
+        const title = document.createElement('h4');
+        title.textContent = '📋 Entrevistas Existentes';
+        title.style.cssText = 'margin-bottom: 12px; color: var(--gold);';
+        
+        const list = document.createElement('div');
+        list.id = 'interviewsListContent';
+        list.style.cssText = 'max-height: 300px; overflow-y: auto; border: 1px solid #333; border-radius: 8px; padding: 8px; background: #0a0a0a;';
+        
+        listContainer.appendChild(title);
+        listContainer.appendChild(list);
+        
+        // Inserir após a seção de criação
+        const createSection = document.querySelector('#createResult').parentNode;
+        createSection.parentNode.insertBefore(listContainer, createSection.nextSibling);
+      }
+      
+      const listContent = document.getElementById('interviewsListContent');
+      
+      if (interviews.length === 0) {
+        listContent.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">Nenhuma entrevista encontrada</div>';
+        return;
+      }
+      
+      listContent.innerHTML = interviews.map(interview => `
+        <div style="background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--wine);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; color: var(--gold); margin-bottom: 4px;">${interview.title || 'Sem título'}</div>
+              <div style="font-size: 12px; color: #999;">
+                🎤 ${interview.artistName || 'Artista não informado'} | 
+                📊 ${interview.status === 'published' ? '✅ Publicada' : '🎬 Rascunho'} |
+                🔑 ${interview._id}
+              </div>
+            </div>
+            <button onclick="deleteInterview('${interview._id}')" style="background: #8b0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              🗑️ Apagar
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
 
     // Invite generation
@@ -621,7 +848,11 @@
       
       try {
         const res = await fetch(`/api/interviews/${interview._id}/stitch`, { 
-          method:'POST'
+          method:'POST',
+          headers: { 
+            'Authorization': `Bearer ${adminAuthToken}`,
+            'Content-Type': 'application/json'
+          }
         }).then(r=>r.json());
         
         if(res.ok){
@@ -635,7 +866,242 @@
         document.getElementById('stitchBtn').disabled = false;
       }
     });
+
+    // ===== FUNÇÕES DE ANÚNCIOS =====
     
+    // Mostrar/esconder seção de anúncios
+    document.getElementById('adsBtn').addEventListener('click', () => {
+      const adsSection = document.getElementById('adsSection');
+      adsSection.style.display = adsSection.style.display === 'none' ? 'block' : 'none';
+      if (adsSection.style.display === 'block') {
+        loadAds();
+      }
+    });
+
+    // Upload de anúncio
+    document.getElementById('uploadAdBtn').addEventListener('click', async () => {
+      if (!adminAuthToken) return alert('Faça o login de admin primeiro.');
+      
+      const slot = document.getElementById('adSlot').value;
+      const title = document.getElementById('adTitle').value;
+      const linkUrl = document.getElementById('adLinkUrl').value;
+      const fileInput = document.getElementById('adImage');
+      const file = fileInput.files[0];
+      
+      if (!slot) return alert('Selecione um slot para o anúncio.');
+      if (!file) return alert('Selecione uma imagem para o anúncio.');
+      
+      const statusDiv = document.getElementById('adStatus');
+      statusDiv.textContent = 'Enviando...';
+      
+      const fd = new FormData();
+      fd.append('image', file);
+      fd.append('slot', slot);
+      fd.append('title', title);
+      fd.append('linkUrl', linkUrl);
+      
+      try {
+        const res = await fetch('/api/ads', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` },
+          body: fd
+        }).then(r => r.json());
+        
+        if (res.ok) {
+          statusDiv.textContent = '✅ Anúncio enviado com sucesso!';
+          fileInput.value = '';
+          document.getElementById('adSlot').value = '';
+          document.getElementById('adTitle').value = '';
+          document.getElementById('adLinkUrl').value = '';
+          loadAds();
+        } else {
+          statusDiv.textContent = '❌ Erro: ' + (res.error || 'Falha no upload');
+        }
+      } catch (err) {
+        statusDiv.textContent = '❌ Erro de conexão';
+        console.error('Erro ao enviar anúncio:', err);
+      }
+    });
+
+    // Listar anúncios existentes
+    document.getElementById('listAdsBtn').addEventListener('click', loadAds);
+
+    async function loadAds() {
+      try {
+        const res = await fetch('/api/ads').then(r => r.json());
+        const adsList = document.getElementById('adsList');
+        
+        if (res.ok && res.data && res.data.length > 0) {
+          adsList.innerHTML = '<h4 style="color: var(--gold); margin-bottom: 12px;">📺 Anúncios Ativos</h4>' +
+            res.data.map(ad => `
+              <div style="background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #666;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">${ad.title || 'Sem título'}</div>
+                    <div style="font-size: 12px; color: #999;">
+                      📍 ${ad.slot} | 
+                      🔗 ${ad.linkUrl || 'Sem link'}
+                    </div>
+                  </div>
+                  <button onclick="deleteAd('${ad.slot}')" style="background: #8b0000; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            `).join('');
+        } else {
+          adsList.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">Nenhum anúncio encontrado</div>';
+        }
+      } catch (err) {
+        console.error('Erro ao carregar anúncios:', err);
+      }
+    }
+
+    // Deletar anúncio
+    window.deleteAd = async (slot) => {
+      if (!confirm(`Tem certeza que deseja deletar o anúncio do slot "${slot}"?`)) return;
+      
+      try {
+        const res = await fetch(`/api/ads/${slot}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        }).then(r => r.json());
+        
+        if (res.ok) {
+          alert('Anúncio deletado com sucesso!');
+          loadAds();
+        } else {
+          alert('Erro ao deletar: ' + (res.error || 'Falha na requisição'));
+        }
+      } catch (err) {
+        alert('Erro de conexão ao deletar anúncio.');
+      }
+    };
+
+    // Limpar todos os anúncios
+    document.getElementById('clearAdsBtn').addEventListener('click', async () => {
+      if (!confirm('Tem certeza que deseja deletar TODOS os anúncios? Esta ação não pode ser desfeita.')) return;
+      
+      try {
+        const res = await fetch('/api/ads', {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        }).then(r => r.json());
+        
+        if (res.ok) {
+          alert('Todos os anúncios foram deletados!');
+          loadAds();
+        } else {
+          alert('Erro ao limpar: ' + (res.error || 'Falha na requisição'));
+        }
+      } catch (err) {
+        alert('Erro de conexão ao limpar anúncios.');
+      }
+    });
+
+    // ===== FUNÇÕES DE BUSCA =====
+    
+    // Mostrar/esconder seção de busca
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const searchSection = document.getElementById('searchSection');
+      searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Buscar entrevistas
+    document.getElementById('searchBtn').addEventListener('click', performSearch);
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') performSearch();
+    });
+
+    async function performSearch() {
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      if (!searchTerm) {
+        alert('Digite um termo para buscar.');
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/admin/interviews', {
+          headers: { 'Authorization': `Bearer ${adminAuthToken}` }
+        }).then(r => r.json());
+        
+        if (res.ok && res.data) {
+          const filtered = res.data.filter(interview => 
+            interview.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            interview.artistName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            interview._id?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          
+          displaySearchResults(filtered, searchTerm);
+        }
+      } catch (err) {
+        console.error('Erro na busca:', err);
+        alert('Erro ao buscar entrevistas.');
+      }
+    }
+
+    function displaySearchResults(results, searchTerm) {
+      const searchResults = document.getElementById('searchResults');
+      
+      if (results.length === 0) {
+        searchResults.innerHTML = `<div style="color: #666; text-align: center; padding: 20px;">Nenhuma entrevista encontrada para "${searchTerm}"</div>`;
+        return;
+      }
+      
+      searchResults.innerHTML = '<h4 style="color: var(--gold); margin-bottom: 12px;">🔍 Resultados da Busca</h4>' +
+        results.map(interview => {
+          const isCurrentlyLoaded = window.interview && window.interview._id === interview._id;
+          
+          return `
+            <div style="background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--wine);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 600; color: var(--gold); margin-bottom: 4px;">${interview.title || 'Sem título'}</div>
+                  <div style="font-size: 12px; color: #999;">
+                    🎤 ${interview.artistName || 'Artista não informado'} | 
+                    📊 ${interview.status === 'published' ? '✅ Publicada' : '🎬 Rascunho'} |
+                    🔑 ${interview._id}
+                  </div>
+                </div>
+                <div style="display: flex; gap: 4px;">
+                  ${isCurrentlyLoaded ? 
+                    `<button onclick="deleteInterview('${interview._id}')" style="background: #8b0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                      🗑️ Apagar
+                    </button>` :
+                    `<button onclick="loadInterviewById('${interview._id}')" style="background: var(--wine); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                      Carregar
+                    </button>`
+                  }
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    // Limpar busca
+    document.getElementById('clearSearchBtn').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchResults').innerHTML = '';
+    });
+
+    // ===== INICIALIZAÇÃO =====
+    
+    // Mostrar seções quando logado
+    function showSectionsWhenLoggedIn() {
+      if (adminAuthToken) {
+        document.getElementById('adsSection').style.display = 'block';
+        document.getElementById('searchSection').style.display = 'block';
+      }
+    }
+
+    // Chamar após login bem-sucedido
+    const originalLogin = document.getElementById('loginBtn').addEventListener;
+    // Modificar função de login para mostrar seções
+    if (adminAuthToken) {
+      showSectionsWhenLoggedIn();
+    }
+
     // Registrar Service Worker para PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

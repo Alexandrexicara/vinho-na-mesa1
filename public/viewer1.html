@@ -44,6 +44,31 @@
     .video-info h3{color:var(--gold);margin:0 0 8px 0;font-size:16px}
     .counter{color:#999;font-size:13px}
     
+    .share-section{margin-top:16px;padding:16px;background:#0f0f0f;border-radius:8px;border:1px solid #222}
+    .share-title{font-size:14px;color:#aaa;margin-bottom:12px;text-transform:uppercase}
+    .share-buttons{display:flex;gap:8px;flex-wrap:wrap}
+    .share-btn{background:#333;color:#fff;padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s}
+    .share-btn:hover{background:#555;transform:translateY(-1px)}
+    .share-btn.whatsapp{background:#25d366}
+    .share-btn.telegram{background:#0088cc}
+    .share-btn.instagram{background:#e4405f}
+    .share-btn.facebook{background:#1877f2}
+    .share-btn.copy{background:#666}
+    
+    .comments-section{margin-top:20px;padding:16px;background:#0f0f0f;border-radius:8px;border:1px solid #222}
+    .comments-title{font-size:16px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .comment-form{margin-bottom:20px}
+    .comment-input{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:12px;border-radius:8px;resize:vertical;min-height:60px;font-family:inherit}
+    .comment-input:focus{outline:none;border-color:var(--wine)}
+    .comment-submit{background:var(--wine);color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-top:8px;transition:all 0.2s}
+    .comment-submit:hover{background:#7a1a34}
+    .comments-list{max-height:400px;overflow-y:auto}
+    .comment{background:#1a1a1a;padding:12px;border-radius:8px;margin-bottom:12px;border-left:3px solid var(--wine)}
+    .comment-author{font-weight:600;color:var(--gold);margin-bottom:4px}
+    .comment-text{color:#ddd;line-height:1.5;margin-bottom:8px}
+    .comment-time{font-size:12px;color:#666}
+    .no-comments{text-align:center;color:#666;padding:20px}
+    
     .horizontal-ads{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
     .horizontal-ad{background:#0a0a0a;border-radius:12px;padding:12px;text-align:center;border:1px solid #222}
     .horizontal-ad img{width:100%;border-radius:8px}
@@ -119,6 +144,52 @@
           <div id="playerHolder">Carregando...</div>
         </div>
         <div class="meta" id="meta"></div>
+        
+        <!-- Seção de Compartilhamento -->
+        <div class="share-section">
+          <div class="share-title">🔗 Compartilhar Entrevista</div>
+          <div class="share-buttons">
+            <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">
+              <span>💬</span> WhatsApp
+            </button>
+            <button class="share-btn telegram" onclick="shareOnTelegram()">
+              <span>✈️</span> Telegram
+            </button>
+            <button class="share-btn instagram" onclick="shareOnInstagram()">
+              <span>📷</span> Instagram
+            </button>
+            <button class="share-btn facebook" onclick="shareOnFacebook()">
+              <span>📘</span> Facebook
+            </button>
+            <button class="share-btn copy" onclick="copyLink()">
+              <span>📋</span> Copiar Link
+            </button>
+          </div>
+        </div>
+        
+        <!-- Seção de Comentários -->
+        <div class="comments-section">
+          <div class="comments-title">
+            <span>💬 Comentários</span>
+            <span id="commentCount" style="font-size:14px;color:#999;">(0)</span>
+          </div>
+          
+          <div class="comment-form">
+            <textarea 
+              id="commentInput" 
+              class="comment-input" 
+              placeholder="Deixe seu comentário sobre esta entrevista..."
+              maxlength="500"
+            ></textarea>
+            <button class="comment-submit" onclick="submitComment()">
+              Enviar Comentário
+            </button>
+          </div>
+          
+          <div id="commentsList" class="comments-list">
+            <div class="no-comments">Nenhum comentário ainda. Seja o primeiro!</div>
+          </div>
+        </div>
             
             <!-- Anúncios Horizontais Embaixo -->
             <div class="horizontal-ads">
@@ -428,6 +499,192 @@ async function load(){
 }
 load();
 loadAds();
+
+// Funções de Compartilhamento
+function shareOnWhatsApp() {
+  const url = window.location.href;
+  const text = `Assista esta entrevista incrível no Vinho na Mesa! 🍷\n${document.getElementById('title').innerText}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}%20${encodeURIComponent(url)}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+function shareOnTelegram() {
+  const url = window.location.href;
+  const text = `Assista esta entrevista no Vinho na Mesa! 🍷\n${document.getElementById('title').innerText}`;
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+  window.open(telegramUrl, '_blank');
+}
+
+function shareOnInstagram() {
+  const url = window.location.href;
+  const text = `Assista esta entrevista incrível no Vinho na Mesa! 🍷\n${document.getElementById('title').innerText}\n\n${url}`;
+  
+  // Instagram não tem compartilhamento direto via URL, então copia o texto
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Texto copiado! Abra o Instagram e cole na sua story ou post.\n\n' + text);
+  }).catch(err => {
+    console.error('Erro ao copiar texto:', err);
+    alert('Não foi possível copiar. Copie manualmente:\n\n' + text);
+  });
+}
+
+function shareOnFacebook() {
+  const url = window.location.href;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  window.open(facebookUrl, '_blank');
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    // Mostrar feedback visual
+    const copyBtn = event.target.closest('.share-btn');
+    const originalText = copyBtn.innerHTML;
+    copyBtn.innerHTML = '<span>✅</span> Link Copiado!';
+    copyBtn.style.background = '#4caf50';
+    
+    setTimeout(() => {
+      copyBtn.innerHTML = originalText;
+      copyBtn.style.background = '#666';
+    }, 2000);
+  }).catch(err => {
+    console.error('Erro ao copiar link:', err);
+    alert('Não foi possível copiar o link. Copie manualmente da barra de endereço.');
+  });
+}
+
+// Sistema de Comentários
+let comments = [];
+
+async function loadComments() {
+  try {
+    console.log('Carregando comentários para token:', token);
+    const url = `/api/interviews/by-view-token/${token}/comments`;
+    console.log('URL completa:', url);
+    
+    const res = await fetch(url);
+    console.log('Resposta status:', res.status);
+    
+    if (res.ok) {
+      const data = await res.json();
+      comments = data.comments || [];
+      renderComments();
+    } else {
+      const errorText = await res.text();
+      console.error('Erro na resposta (texto):', errorText);
+      if (res.status === 404) {
+        console.error('URL não encontrada. Verificando se a rota existe no servidor...');
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao carregar comentários:', err);
+  }
+}
+
+function renderComments() {
+  const commentsList = document.getElementById('commentsList');
+  const commentCount = document.getElementById('commentCount');
+  
+  commentCount.textContent = `(${comments.length})`;
+  
+  if (comments.length === 0) {
+    commentsList.innerHTML = '<div class="no-comments">Nenhum comentário ainda. Seja o primeiro!</div>';
+    return;
+  }
+  
+  commentsList.innerHTML = comments.map(comment => `
+    <div class="comment">
+      <div class="comment-author">${escapeHtml(comment.author || 'Anônimo')}</div>
+      <div class="comment-text">${escapeHtml(comment.text)}</div>
+      <div class="comment-time">${formatDate(comment.createdAt)}</div>
+    </div>
+  `).join('');
+}
+
+async function submitComment() {
+  const input = document.getElementById('commentInput');
+  const text = input.value.trim();
+  
+  if (!text) {
+    alert('Digite um comentário antes de enviar.');
+    return;
+  }
+  
+  if (text.length > 500) {
+    alert('Comentário muito longo. Máximo 500 caracteres.');
+    return;
+  }
+  
+  try {
+    console.log('Enviando comentário para token:', token);
+    const url = `/api/interviews/by-view-token/${token}/comments`;
+    console.log('URL de envio:', url);
+    
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: text,
+        author: 'Visitante' // Pode ser modificado para incluir nome do usuário
+      })
+    });
+    
+    console.log('Status da resposta:', res.status);
+    
+    if (res.ok) {
+      input.value = '';
+      const data = await res.json();
+      if (data.comment) {
+        comments.unshift(data.comment); // Adiciona no início
+        renderComments();
+      }
+    } else {
+      const errorText = await res.text();
+      console.error('Erro na resposta (texto):', errorText);
+      
+      if (res.status === 404) {
+        alert('Erro: Rota de comentários não encontrada. Verifique o servidor.');
+      } else {
+        try {
+          const error = JSON.parse(errorText);
+          alert(error.error || 'Erro ao enviar comentário.');
+        } catch {
+          alert('Erro ao enviar comentário: ' + errorText);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao enviar comentário:', err);
+    alert('Erro de conexão. Tente novamente.');
+  }
+}
+
+// Funções utilitárias
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return 'Agora';
+  if (diffMins < 60) return `Há ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+  if (diffHours < 24) return `Há ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+  if (diffDays < 7) return `Há ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
+  
+  return date.toLocaleDateString('pt-BR');
+}
+
+// Carregar comentários quando a página carregar
+document.addEventListener('DOMContentLoaded', loadComments);
 
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {

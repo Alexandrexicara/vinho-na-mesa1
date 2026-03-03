@@ -57,19 +57,15 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
     }
     
-    .logo .circle {
+    .logo img {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--wine), #8b1b2b);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: #fff;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(93, 19, 38, 0.3);
     }
     
     h1 {
@@ -188,6 +184,12 @@
       font-size: 14px;
       margin-top: 10px;
       transition: all 0.3s ease;
+      grid-column: 1 / -1;
+      height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     
     .ad-banner-space:hover {
@@ -217,7 +219,7 @@
   <div class="container">
     <header>
       <div class="logo">
-        <div class="circle">V</div>
+        <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa Logo">
         <h1>Vinho na Mesa</h1>
       </div>
     </header>
@@ -255,10 +257,20 @@
         if (interviews.length > 0) {
           let html = '<div class="interviews-grid">';
 
-          interviews.forEach(interview => {
+          interviews.forEach((interview, index) => {
             const thumbHtml = interview.thumbnailUrl
               ? `<img src="${interview.thumbnailUrl}" alt="Capa">`
               : `<div>Capa não disponível</div>`;
+
+            // Adicionar espaço para anúncio a cada 3 entrevistas
+            if (index > 0 && index % 3 === 0) {
+              html += `
+                <div class="ad-banner-space">
+                  <p>📺 Espaço para Anúncio</p>
+                  <p style="font-size: 12px; margin-top: 5px;">300x250 - Banner Publicitário</p>
+                </div>
+              `;
+            }
 
             html += `
               <div class="interview-card">

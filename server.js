@@ -207,6 +207,63 @@ app.get('/api/interviews/:id', verifyAdminToken, (req, res) => {
   });
 });
 
+// Rota para deletar uma entrevista completamente
+app.delete('/api/interviews/:id', verifyAdminToken, (req, res) => {
+  const { id } = req.params;
+  
+  const store = readStore();
+  const interviewIndex = store.interviews.findIndex(i => i._id === id);
+  
+  if (interviewIndex === -1) {
+    return res.status(404).json({ ok: false, error: 'Entrevista não encontrada' });
+  }
+  
+  const interview = store.interviews[interviewIndex];
+  
+  try {
+    // Deletar arquivos de mídia se existirem
+    if (interview.questions && interview.questions.length > 0) {
+      interview.questions.forEach(question => {
+        if (question.videoUrl) {
+          const videoPath = path.join(__dirname, 'public', question.videoUrl);
+          if (fs.existsSync(videoPath)) {
+            fs.unlinkSync(videoPath);
+          }
+        }
+      });
+    }
+    
+    // Deletar thumbnail se existir
+    if (interview.thumbnailUrl) {
+      const thumbnailPath = path.join(__dirname, 'public', interview.thumbnailUrl);
+      if (fs.existsSync(thumbnailPath)) {
+        fs.unlinkSync(thumbnailPath);
+      }
+    }
+    
+    // Remover do viewIndex
+    Object.keys(store.viewIndex).forEach(token => {
+      if (store.viewIndex[token] === id) {
+        delete store.viewIndex[token];
+      }
+    });
+    
+    // Remover do array de entrevistas
+    store.interviews.splice(interviewIndex, 1);
+    
+    writeStore(store);
+    
+    res.json({ 
+      ok: true, 
+      message: 'Entrevista e todos os arquivos associados foram deletados com sucesso' 
+    });
+    
+  } catch (err) {
+    console.error('Erro ao deletar entrevista:', err);
+    res.status(500).json({ ok: false, error: 'Erro ao deletar arquivos da entrevista' });
+  }
+});
+
 // Rota para atualizar status da entrevista
 app.put('/api/interviews/:id/status', verifyAdminToken, (req, res) => {
   const { id } = req.params;
@@ -312,6 +369,63 @@ app.get('/api/interviews/by-token/:token', (req, res) => {
     ok: true, 
     interview: interview,
     message: 'Entrevista encontrada' 
+  });
+});
+
+// Comentários - DEVEM vir antes da rota geral by-view-token
+app.get('/api/interviews/by-view-token/:token/comments', (req, res) => {
+  const { token } = req.params;
+  
+  const store = readStore();
+  const interviewId = store.viewIndex[token];
+  const interview = store.interviews.find(i => i._id === interviewId);
+  if (!interview) {
+    return res.status(404).json({ ok: false, error: 'Entrevista não encontrada' });
+  }
+  
+  const comments = interview.comments || [];
+  res.json({ ok: true, comments });
+});
+
+app.post('/api/interviews/by-view-token/:token/comments', (req, res) => {
+  const { token } = req.params;
+  const { text, author } = req.body;
+  
+  if (!text || text.trim().length === 0) {
+    return res.status(400).json({ ok: false, error: 'Comentário não pode ser vazio' });
+  }
+  
+  if (text.length > 500) {
+    return res.status(400).json({ ok: false, error: 'Comentário muito longo (máximo 500 caracteres)' });
+  }
+  
+  const store = readStore();
+  const interviewId = store.viewIndex[token];
+  const interview = store.interviews.find(i => i._id === interviewId);
+  if (!interview) {
+    return res.status(404).json({ ok: false, error: 'Entrevista não encontrada' });
+  }
+  
+  // Inicializar array de comentários se não existir
+  if (!interview.comments) {
+    interview.comments = [];
+  }
+  
+  const newComment = {
+    _id: 'comment-' + Date.now(),
+    text: text.trim(),
+    author: author || 'Anônimo',
+    createdAt: new Date().toISOString()
+  };
+  
+  interview.comments.unshift(newComment); // Adiciona no início
+  interview.updatedAt = new Date().toISOString();
+  writeStore(store);
+  
+  res.json({ 
+    ok: true, 
+    comment: newComment,
+    message: 'Comentário adicionado com sucesso' 
   });
 });
 
@@ -432,6 +546,88 @@ app.post('/api/interviews/:id/answers', upload.single('video'), (req, res) => {
 app.get('/api/ads', (req, res) => {
   const store = readStore();
   res.json({ ok: true, data: store.ads });
+});
+
+app.post('/api/ads', verifyAdminToken, upload.single('image'), (req, res) => {
+  const { slot, title, linkUrl } = req.body;
+  
+  if (!req.file) {
+    return res.status(400).json({ ok: false, error: 'Arquivo de imagem não enviado' });
+  }
+  
+  if (!slot) {
+    return res.status(400).json({ ok: false, error: 'Slot não informado' });
+  }
+  
+  const store = readStore();
+  
+  // Inicializar array de ads se não existir
+  if (!store.ads) {
+    store.ads = [];
+  }
+  
+  // Remover anúncio existente no mesmo slot
+  store.ads = store.ads.filter(ad => ad.slot !== slot);
+  
+  // Salvar imagem
+  const filename = `ad-${slot}-${Date.now()}${path.extname(req.file.originalname)}`;
+  const filepath = path.join(__dirname, 'public', 'uploads', filename);
+  
+  fs.writeFileSync(filepath, req.file.buffer);
+  
+  const newAd = {
+    slot: slot,
+    title: title || 'Anúncio',
+    linkUrl: linkUrl || '',
+    imageUrl: `/uploads/${filename}`,
+    createdAt: new Date().toISOString()
+  };
+  
+  store.ads.push(newAd);
+  writeStore(store);
+  
+  res.json({ 
+    ok: true, 
+    ad: newAd,
+    message: 'Anúncio enviado com sucesso' 
+  });
+});
+
+app.delete('/api/ads/:slot', verifyAdminToken, (req, res) => {
+  const { slot } = req.params;
+  
+  const store = readStore();
+  if (!store.ads) {
+    return res.status(404).json({ ok: false, error: 'Nenhum anúncio encontrado' });
+  }
+  
+  // Remover anúncio do slot especificado
+  const originalLength = store.ads.length;
+  store.ads = store.ads.filter(ad => ad.slot !== slot);
+  
+  if (store.ads.length === originalLength) {
+    return res.status(404).json({ ok: false, error: 'Anúncio não encontrado no slot especificado' });
+  }
+  
+  writeStore(store);
+  res.json({ 
+    ok: true, 
+    message: 'Anúncio deletado com sucesso' 
+  });
+});
+
+app.delete('/api/ads', verifyAdminToken, (req, res) => {
+  const store = readStore();
+  
+  // Deletar todos os anúncios
+  const deletedCount = store.ads ? store.ads.length : 0;
+  store.ads = [];
+  
+  writeStore(store);
+  res.json({ 
+    ok: true, 
+    message: `${deletedCount} anúncios deletados com sucesso` 
+  });
 });
 
 // Middleware para servir arquivos estáticos como fallback
