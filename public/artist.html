@@ -29,11 +29,15 @@
     body{margin:0;background:linear-gradient(0deg,#050505,#0b0b0b);color:var(--muted);font-family:Inter,Arial}
     .wrap{max-width:920px;margin:28px auto;padding:18px}
     .card{background:var(--card);padding:16px;border-radius:12px}
-    h2{margin:0 0 8px 0}
+    h2{margin:0 0 8px 0;color:var(--wine)}
     .video-preview{width:100%;height:300px;background:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#666}
     button{background:var(--wine);color:white;padding:10px 12px;border-radius:10px;border:none;cursor:pointer}
     .secondary{background:transparent;border:1px solid #222;padding:8px 10px}
     .small{font-size:13px;color:#aaa}
+    
+    .ad-space{background:rgba(40,40,40,0.7);border:1px dashed #5d1326;border-radius:12px;padding:16px;text-align:center;border:1px solid #222}
+    .ad-space:hover{border-color:#c9a24a;background:rgba(50,50,50,0.8)}
+    .ad-label{font-size:11px;color:#666;text-transform:uppercase;margin-bottom:8px}
     
     @media(max-width:1200px){
       div[style*="grid-template-columns:250px 1fr 250px"]{grid-template-columns:1fr !important}
@@ -45,17 +49,35 @@
   <div style="display:grid;grid-template-columns:250px 1fr 250px;gap:20px;max-width:1600px;margin:0 auto">
     <!-- Anúncios Laterais Esquerda -->
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
-        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
-        <a href="https://linkdopatrocinador.com" target="_blank">
-          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
-        </a>
+      <div class="ad-space" id="adLeft1" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
       </div>
-      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
-        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
-        <a href="https://linkdopatrocinador.com" target="_blank">
-          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
-        </a>
+      <div class="ad-space" id="adLeft2" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
+      </div>
+      <div class="ad-space" id="adLeft3" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
+      </div>
+      <div class="ad-space" id="adLeft4" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
+      </div>
+      <div class="ad-space" id="adLeft5" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
       </div>
     </div>
 
@@ -63,7 +85,7 @@
     <div>
       <!-- Logo -->
       <div style="text-align:center;margin-bottom:24px">
-        <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" style="height:60px"/>
+        <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" style="height:120px"/>
       </div>
 
       <div class="card">
@@ -123,17 +145,35 @@
 
     <!-- Anúncios Laterais Direita -->
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
-        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
-        <a href="https://linkdopatrocinador.com" target="_blank">
-          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
-        </a>
+      <div class="ad-space" id="adRight1" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
       </div>
-      <div style="background:#0a0a0a;border-radius:12px;padding:16px;text-align:center;border:1px solid #222">
-        <div style="font-size:11px;color:#666;text-transform:uppercase">Patrocinador</div>
-        <a href="https://linkdopatrocinador.com" target="_blank">
-          <img src="/img/logo_vinhonamesa.png" style="width:100%;border-radius:8px;margin-top:8px"/>
-        </a>
+      <div class="ad-space" id="adRight2" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
+      </div>
+      <div class="ad-space" id="adRight3" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
+      </div>
+      <div class="ad-space" id="adRight4" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
+      </div>
+      <div class="ad-space" id="adRight5" style="height: 250px;">
+        <div class="ad-label">Patrocínio</div>
+        <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+          📢<br/>Espaço disponível<br/>para anunciantes
+        </div>
       </div>
     </div>
   </div>
@@ -238,6 +278,90 @@ document.getElementById('nextBtn').addEventListener('click', ()=> {
   currentQuestionIndex++;
   showNextQuestion();
 });
+
+// Carregar anúncios
+const adSlots = {
+  'left': ['adLeft1', 'adLeft2', 'adLeft3', 'adLeft4', 'adLeft5'],
+  'right': ['adRight1', 'adRight2', 'adRight3', 'adRight4', 'adRight5']
+};
+
+async function loadAds() {
+  try {
+    const res = await fetch('/api/ads');
+    const data = await res.json();
+
+    // Agrupar anúncios por lado
+    const adsBySide = {
+      left: [],
+      right: []
+    };
+
+    if (data.ok && data.data && data.data.length > 0) {
+      data.data.forEach(ad => {
+        if (adSlots[ad.slot]) {
+          adsBySide[ad.slot].push(ad);
+        }
+      });
+    }
+
+    // Preencher anúncios do lado esquerdo
+    const leftSlots = adSlots.left;
+    adsBySide.left.forEach((ad, index) => {
+      if (index < leftSlots.length) {
+        const slotEl = document.getElementById(leftSlots[index]);
+        if (slotEl) {
+          slotEl.innerHTML = `
+            <div class="ad-label">${ad.title || 'Patrocínio'}</div>
+            ${ad.imageUrl ? `<img src="${ad.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : 
+              `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px">${ad.title || 'Espaço para anúncio'}</div>`}
+          `;
+          if (ad.linkUrl) {
+            slotEl.style.cursor = 'pointer';
+            slotEl.onclick = () => window.open(ad.linkUrl, '_blank');
+          }
+        }
+      }
+    });
+
+    // Preencher anúncios do lado direito
+    const rightSlots = adSlots.right;
+    adsBySide.right.forEach((ad, index) => {
+      if (index < rightSlots.length) {
+        const slotEl = document.getElementById(rightSlots[index]);
+        if (slotEl) {
+          slotEl.innerHTML = `
+            <div class="ad-label">${ad.title || 'Patrocínio'}</div>
+            ${ad.imageUrl ? `<img src="${ad.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : 
+              `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px">${ad.title || 'Espaço para anúncio'}</div>`}
+          `;
+          if (ad.linkUrl) {
+            slotEl.style.cursor = 'pointer';
+            slotEl.onclick = () => window.open(ad.linkUrl, '_blank');
+          }
+        }
+      }
+    });
+
+    // Mostrar anúncios padrão nos slots vazios
+    [...leftSlots, ...rightSlots].forEach(slotId => {
+      const slotEl = document.getElementById(slotId);
+      if (slotEl && !slotEl.querySelector('img')) {
+        slotEl.innerHTML = `
+          <div class="ad-label">Patrocínio</div>
+          <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;text-align:center">
+            📢<br/>Espaço disponível<br/>para anunciantes
+          </div>
+        `;
+      }
+    });
+
+  } catch (err) {
+    console.error('Erro ao carregar anúncios:', err);
+  }
+}
+
+// Carregar anúncios quando a página carregar
+document.addEventListener('DOMContentLoaded', loadAds);
 
 init();
 </script>

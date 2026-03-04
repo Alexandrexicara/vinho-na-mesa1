@@ -389,7 +389,7 @@ app.get('/api/interviews/by-view-token/:token/comments', (req, res) => {
 
 app.post('/api/interviews/by-view-token/:token/comments', (req, res) => {
   const { token } = req.params;
-  const { text, author } = req.body;
+  const { text, author, avatar } = req.body;
   
   if (!text || text.trim().length === 0) {
     return res.status(400).json({ ok: false, error: 'Comentário não pode ser vazio' });
@@ -397,6 +397,10 @@ app.post('/api/interviews/by-view-token/:token/comments', (req, res) => {
   
   if (text.length > 500) {
     return res.status(400).json({ ok: false, error: 'Comentário muito longo (máximo 500 caracteres)' });
+  }
+  
+  if (author && author.length > 50) {
+    return res.status(400).json({ ok: false, error: 'Nome muito longo (máximo 50 caracteres)' });
   }
   
   const store = readStore();
@@ -414,7 +418,8 @@ app.post('/api/interviews/by-view-token/:token/comments', (req, res) => {
   const newComment = {
     _id: 'comment-' + Date.now(),
     text: text.trim(),
-    author: author || 'Anônimo',
+    author: author || null,
+    avatar: avatar || null,
     createdAt: new Date().toISOString()
   };
   
@@ -573,7 +578,8 @@ app.post('/api/ads', verifyAdminToken, upload.single('image'), (req, res) => {
   const filename = `ad-${slot}-${Date.now()}${path.extname(req.file.originalname)}`;
   const filepath = path.join(__dirname, 'public', 'uploads', filename);
   
-  fs.writeFileSync(filepath, req.file.buffer);
+  // Mover arquivo do upload para o destino final
+  fs.renameSync(req.file.path, filepath);
   
   const newAd = {
     slot: slot,

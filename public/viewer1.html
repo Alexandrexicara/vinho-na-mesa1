@@ -42,6 +42,7 @@
     .progress-bar{height:100%;background:var(--wine);transition:width 0.3s}
     .video-info{background:#0a0a0a;padding:12px;border-radius:8px;margin-top:12px}
     .video-info h3{color:var(--gold);margin:0 0 8px 0;font-size:16px}
+    h2{color:#fff;margin:0 0 16px 0;font-size:24px;font-weight:700}
     .counter{color:#999;font-size:13px}
     
     .share-section{margin-top:16px;padding:16px;background:#0f0f0f;border-radius:8px;border:1px solid #222}
@@ -56,7 +57,7 @@
     .share-btn.copy{background:#666}
     
     .comments-section{margin-top:20px;padding:16px;background:#0f0f0f;border-radius:8px;border:1px solid #222}
-    .comments-title{font-size:16px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .comments-title{font-size:16px;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:8px}
     .comment-form{margin-bottom:20px}
     .comment-input{width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;padding:12px;border-radius:8px;resize:vertical;min-height:60px;font-family:inherit}
     .comment-input:focus{outline:none;border-color:var(--wine)}
@@ -64,7 +65,10 @@
     .comment-submit:hover{background:#7a1a34}
     .comments-list{max-height:400px;overflow-y:auto}
     .comment{background:#1a1a1a;padding:12px;border-radius:8px;margin-bottom:12px;border-left:3px solid var(--wine)}
-    .comment-author{font-weight:600;color:var(--gold);margin-bottom:4px}
+    .comment-author{font-weight:600;color:var(--gold);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+    .comment-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--wine)}
+    .comment-author-name{flex:1}
+    .comment-anonymous{color:#999;font-style:italic}
     .comment-text{color:#ddd;line-height:1.5;margin-bottom:8px}
     .comment-time{font-size:12px;color:#666}
     .no-comments{text-align:center;color:#666;padding:20px}
@@ -87,7 +91,7 @@
 <body>
   <!-- Logo no Topo -->
   <div style="text-align:center;margin-bottom:24px">
-    <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" style="height:60px"/>
+    <img src="/img/logo_vinhonamesa.png" alt="Vinho na Mesa" style="height:120px"/>
   </div>
 
   <!-- Popup de Anúncio -->
@@ -175,6 +179,37 @@
           </div>
           
           <div class="comment-form">
+            <div style="display: grid; gap: 12px; margin-bottom: 12px;">
+              <input 
+                type="text" 
+                id="commentName" 
+                class="comment-input" 
+                placeholder="Seu nome (opcional)"
+                maxlength="50"
+                style="min-height: auto;"
+              />
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <input 
+                  type="file" 
+                  id="commentPhoto" 
+                  accept="image/*"
+                  style="display: none;"
+                  onchange="previewPhoto(event)"
+                />
+                <button 
+                  type="button" 
+                  onclick="document.getElementById('commentPhoto').click()"
+                  class="btn" 
+                  style="background: #333; padding: 8px 16px; font-size: 14px;"
+                >
+                  📷 Adicionar Foto
+                </button>
+                <div id="photoPreview" style="display: none; align-items: center; gap: 8px;">
+                  <img id="previewImg" src="" alt="Preview" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--wine);" />
+                  <button type="button" onclick="removePhoto()" style="background: #d32f2f; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">✕</button>
+                </div>
+              </div>
+            </div>
             <textarea 
               id="commentInput" 
               class="comment-input" 
@@ -593,7 +628,11 @@ function renderComments() {
   
   commentsList.innerHTML = comments.map(comment => `
     <div class="comment">
-      <div class="comment-author">${escapeHtml(comment.author || 'Anônimo')}</div>
+      <div class="comment-author">
+        ${comment.avatar ? `<img src="${comment.avatar}" alt="Avatar" class="comment-avatar">` : ''}
+        <div class="comment-author-name">${escapeHtml(comment.author || 'Anônimo')}</div>
+        ${!comment.author ? '<span class="comment-anonymous">Visitante</span>' : ''}
+      </div>
       <div class="comment-text">${escapeHtml(comment.text)}</div>
       <div class="comment-time">${formatDate(comment.createdAt)}</div>
     </div>
@@ -602,7 +641,10 @@ function renderComments() {
 
 async function submitComment() {
   const input = document.getElementById('commentInput');
+  const nameInput = document.getElementById('commentName');
+  const photoInput = document.getElementById('commentPhoto');
   const text = input.value.trim();
+  const author = nameInput.value.trim() || null;
   
   if (!text) {
     alert('Digite um comentário antes de enviar.');
@@ -614,26 +656,50 @@ async function submitComment() {
     return;
   }
   
+  if (author && author.length > 50) {
+    alert('Nome muito longo. Máximo 50 caracteres.');
+    return;
+  }
+  
   try {
     console.log('Enviando comentário para token:', token);
     const url = `/api/interviews/by-view-token/${token}/comments`;
     console.log('URL de envio:', url);
+    
+    // Preparar dados do comentário
+    const commentData = {
+      text: text,
+      author: author
+    };
+    
+    // Se houver foto, converter para base64
+    if (photoInput.files && photoInput.files[0]) {
+      const file = photoInput.files[0];
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        alert('Foto muito grande. Máximo 2MB.');
+        return;
+      }
+      
+      const base64 = await fileToBase64(file);
+      commentData.avatar = base64;
+    }
     
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        text: text,
-        author: 'Visitante' // Pode ser modificado para incluir nome do usuário
-      })
+      body: JSON.stringify(commentData)
     });
     
     console.log('Status da resposta:', res.status);
     
     if (res.ok) {
+      // Limpar formulário
       input.value = '';
+      nameInput.value = '';
+      removePhoto();
+      
       const data = await res.json();
       if (data.comment) {
         comments.unshift(data.comment); // Adiciona no início
@@ -660,11 +726,38 @@ async function submitComment() {
   }
 }
 
-// Funções utilitárias
+// Funções utilitários
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('previewImg').src = e.target.result;
+      document.getElementById('photoPreview').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removePhoto() {
+  document.getElementById('commentPhoto').value = '';
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('previewImg').src = '';
 }
 
 function formatDate(dateString) {

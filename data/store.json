@@ -1,6 +1,166 @@
 {
   "interviews": [
     {
+      "_id": "int-1772655261317",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "http://localhost:5000/uploads/1772655328654-vinho.png",
+      "questions": [
+        {
+          "_id": "q-1772655346235",
+          "order": 1,
+          "url": "http://localhost:5000/uploads/1772655346133-question-1-1772655346110.webm",
+          "createdAt": "2026-03-04T20:15:46.235Z"
+        }
+      ],
+      "answers": [],
+      "inviteToken": "invite-1772655261317-ikp62hoeo",
+      "viewToken": "view-1772655261317-mphqgj9ev",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T20:14:21.317Z",
+      "updatedAt": "2026-03-04T20:54:47.157Z",
+      "comments": [
+        {
+          "_id": "comment-1772657687157",
+          "text": "teste",
+          "author": "celi",
+          "avatar": null,
+          "createdAt": "2026-03-04T20:54:47.157Z"
+        },
+        {
+          "_id": "comment-1772657668079",
+          "text": "meuno",
+          "author": "rox",
+          "avatar": "data:image/png;base64,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",
+          "createdAt": "2026-03-04T20:54:28.079Z"
+        }
+      ]
+    },
+    {
+      "_id": "int-1772655245304",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1772655245303-7x4ihfkoz",
+      "viewToken": "view-1772655245303-o9738tt57",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T20:14:05.304Z"
+    },
+    {
+      "_id": "int-1772655243323",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1772655243323-fxwt8cb2e",
+      "viewToken": "view-1772655243323-riraa4nix",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T20:14:03.323Z"
+    },
+    {
+      "_id": "int-1772655216537",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1772655216537-5t8mj6zy1",
+      "viewToken": "view-1772655216537-zlykf4v8m",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T20:13:36.537Z"
+    },
+    {
+      "_id": "int-1772655194324",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1772655194324-4zd78vyhe",
+      "viewToken": "view-1772655194324-dvh9h8z48",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T20:13:14.325Z"
+    },
+    {
+      "_id": "int-1772655053681",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "http://localhost:5000/uploads/1772655078709-vinho.png",
+      "questions": [
+        {
+          "_id": "q-1772655090071",
+          "order": 1,
+          "url": "http://localhost:5000/uploads/1772655089971-question-1-1772655089938.webm",
+          "createdAt": "2026-03-04T20:11:30.071Z"
+        },
+        {
+          "_id": "q-1772655102488",
+          "order": 2,
+          "url": "http://localhost:5000/uploads/1772655102335-question-2-1772655102311.webm",
+          "createdAt": "2026-03-04T20:11:42.488Z"
+        }
+      ],
+      "answers": [],
+      "inviteToken": "invite-1772655053679-stmte8bpa",
+      "viewToken": "view-1772655053680-mnw08mipy",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T20:10:53.681Z",
+      "updatedAt": "2026-03-04T20:11:42.492Z"
+    },
+    {
+      "_id": "int-1772653725015",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "http://localhost:5000/uploads/1772653738037-vinho.png",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1772653724967-lnw15x9w2",
+      "viewToken": "view-1772653724968-f6ynzv9zs",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T19:48:45.015Z",
+      "updatedAt": "2026-03-04T19:48:58.067Z"
+    },
+    {
+      "_id": "int-1772642657951",
+      "title": "Vinho na Mesa",
+      "interviewerName": "Entrevistador",
+      "artistEmail": "",
+      "artistName": "",
+      "status": "draft",
+      "thumbnailUrl": "http://localhost:5000/uploads/1772642686663-vinho.png",
+      "questions": [],
+      "answers": [],
+      "inviteToken": "invite-1772642657951-nz2gw6b5j",
+      "viewToken": "view-1772642657951-a5efallld",
+      "viewCount": 0,
+      "createdAt": "2026-03-04T16:44:17.951Z",
+      "updatedAt": "2026-03-04T16:44:46.695Z"
+    },
+    {
       "_id": "int-1772571692520",
       "title": "Vinho na Mesa",
       "interviewerName": "Entrevistador",
@@ -70,11 +230,62 @@
       "updatedAt": "2026-02-24T20:13:29.639Z"
     }
   ],
-  "ads": [],
+  "ads": [
+    {
+      "slot": "h-2",
+      "title": "mais um",
+      "linkUrl": "",
+      "imageUrl": "/uploads/ad-h-2-1772654949858.png",
+      "createdAt": "2026-03-04T20:09:09.866Z"
+    },
+    {
+      "slot": "right-1",
+      "title": "teste",
+      "linkUrl": "",
+      "imageUrl": "/uploads/ad-right-1-1772656796944.png",
+      "createdAt": "2026-03-04T20:39:56.949Z"
+    },
+    {
+      "slot": "left-1",
+      "title": "teste reta",
+      "linkUrl": "",
+      "imageUrl": "/uploads/ad-left-1-1772656874498.png",
+      "createdAt": "2026-03-04T20:41:14.502Z"
+    },
+    {
+      "slot": "popup",
+      "title": "Anúncio",
+      "linkUrl": "",
+      "imageUrl": "/uploads/ad-popup-1772657550810.png",
+      "createdAt": "2026-03-04T20:52:30.819Z"
+    },
+    {
+      "slot": "left-2",
+      "title": "Anúncio",
+      "linkUrl": "",
+      "imageUrl": "/uploads/ad-left-2-1772657593298.png",
+      "createdAt": "2026-03-04T20:53:13.302Z"
+    },
+    {
+      "slot": "h-1",
+      "title": "Anúncio",
+      "linkUrl": "",
+      "imageUrl": "/uploads/ad-h-1-1772658058565.png",
+      "createdAt": "2026-03-04T21:00:58.571Z"
+    }
+  ],
   "viewIndex": {
     "view-1771963997983-gf9hqg2nj": "int-1771963997983",
     "view-1771965082810-7hc3vg59h": "int-1771965082810",
-    "view-1772571692520-puf1em6ro": "int-1772571692520"
+    "view-1772571692520-puf1em6ro": "int-1772571692520",
+    "view-1772642657951-a5efallld": "int-1772642657951",
+    "view-1772653724968-f6ynzv9zs": "int-1772653725015",
+    "view-1772655053680-mnw08mipy": "int-1772655053681",
+    "view-1772655194324-dvh9h8z48": "int-1772655194324",
+    "view-1772655216537-zlykf4v8m": "int-1772655216537",
+    "view-1772655243323-riraa4nix": "int-1772655243323",
+    "view-1772655245303-o9738tt57": "int-1772655245304",
+    "view-1772655261317-mphqgj9ev": "int-1772655261317"
   },
   "artistIndex": {
     "invite-1767980269950-uav4pwd02": "int-1767980269951",
@@ -90,6 +301,14 @@
     "invite-1771964648225-m5siewv6r": "int-1771964648226",
     "invite-1771965082806-8sven0ltq": "int-1771965082810",
     "invite-1772571434633-gxhs6jr6h": "int-1772571434633",
-    "invite-1772571692520-k7rgfv90y": "int-1772571692520"
+    "invite-1772571692520-k7rgfv90y": "int-1772571692520",
+    "invite-1772642657951-nz2gw6b5j": "int-1772642657951",
+    "invite-1772653724967-lnw15x9w2": "int-1772653725015",
+    "invite-1772655053679-stmte8bpa": "int-1772655053681",
+    "invite-1772655194324-4zd78vyhe": "int-1772655194324",
+    "invite-1772655216537-5t8mj6zy1": "int-1772655216537",
+    "invite-1772655243323-fxwt8cb2e": "int-1772655243323",
+    "invite-1772655245303-7x4ihfkoz": "int-1772655245304",
+    "invite-1772655261317-ikp62hoeo": "int-1772655261317"
   }
 }

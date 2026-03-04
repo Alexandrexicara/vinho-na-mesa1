@@ -30,8 +30,8 @@
     body{ margin:0; background:linear-gradient(0deg,#050505, #0b0b0b); color:var(--muted); min-height:100vh; padding:28px }
     header{ display:flex; align-items:center; gap:16px; margin-bottom:18px }
     .logo{ display:flex; align-items:center; gap:12px }
-    .logo .circle{ width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--wine),#8b1b2b); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff }
-    h1{ margin:0; font-size:20px }
+    .logo .circle{ width:96px; height:96px; border-radius:50%; background:linear-gradient(135deg,var(--wine),#8b1b2b); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:36px }
+    h1{ margin:0; font-size:20px; color:var(--wine) }
     .container{ display:grid; grid-template-columns:360px 1fr; gap:20px }
     .card{ background:var(--card); padding:16px; border-radius:var(--radius); box-shadow:0 6px 18px rgba(0,0,0,0.6) }
     label{ display:block; font-size:13px; margin-bottom:6px; color:#aaa }
@@ -154,13 +154,14 @@
           <label>Slot do Anúncio</label>
           <select id="adSlot" style="width:100%; padding:10px; border-radius:8px; border:1px solid #222; background:#0a0a0a; color:var(--muted)">
             <option value="">Selecione um slot...</option>
-            <option value="left-1">Lateral Esquerdo 1</option>
-            <option value="left-2">Lateral Esquerdo 2</option>
-            <option value="right-1">Lateral Direito 1</option>
-            <option value="right-2">Lateral Direito 2</option>
-            <option value="h-1">Horizontal 1</option>
-            <option value="h-2">Horizontal 2</option>
-            <option value="popup">Popup</option>
+            <option value="main">Principal (index.html)</option>
+            <option value="login">Login (login.html)</option>
+            <option value="left">Lateral Esquerdo (artist.html)</option>
+            <option value="right">Lateral Direito (artist.html)</option>
+            <option value="viewer">Viewer (viewer.html)</option>
+            <option value="h-1">Viewer1 Horizontal 1</option>
+            <option value="h-2">Viewer1 Horizontal 2</option>
+            <option value="popup">Viewer1 Popup</option>
           </select>
         </div>
         
@@ -901,11 +902,21 @@
       fd.append('linkUrl', linkUrl);
       
       try {
-        const res = await fetch('/api/ads', {
+        const response = await fetch('/api/ads', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${adminAuthToken}` },
           body: fd
-        }).then(r => r.json());
+        });
+        
+        // Verificar se a resposta é OK antes de tentar parsear JSON
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro do servidor:', errorText);
+          statusDiv.textContent = '❌ Erro: ' + (response.status + ' ' + response.statusText);
+          return;
+        }
+        
+        const res = await response.json();
         
         if (res.ok) {
           statusDiv.textContent = '✅ Anúncio enviado com sucesso!';
@@ -928,7 +939,17 @@
 
     async function loadAds() {
       try {
-        const res = await fetch('/api/ads').then(r => r.json());
+        const response = await fetch('/api/ads');
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro ao carregar anúncios:', errorText);
+          const adsList = document.getElementById('adsList');
+          adsList.innerHTML = '<div style="color: #ff6b6b;">❌ Erro ao carregar anúncios</div>';
+          return;
+        }
+        
+        const res = await response.json();
         const adsList = document.getElementById('adsList');
         
         if (res.ok && res.data && res.data.length > 0) {
@@ -950,10 +971,12 @@
               </div>
             `).join('');
         } else {
-          adsList.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">Nenhum anúncio encontrado</div>';
+          adsList.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">Nenhum anúncio cadastrado</div>';
         }
       } catch (err) {
         console.error('Erro ao carregar anúncios:', err);
+        const adsList = document.getElementById('adsList');
+        adsList.innerHTML = '<div style="color: #ff6b6b;">❌ Erro de conexão ao carregar anúncios</div>';
       }
     }
 
@@ -962,19 +985,28 @@
       if (!confirm(`Tem certeza que deseja deletar o anúncio do slot "${slot}"?`)) return;
       
       try {
-        const res = await fetch(`/api/ads/${slot}`, {
+        const response = await fetch(`/api/ads/${slot}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${adminAuthToken}` }
-        }).then(r => r.json());
+        });
         
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro ao deletar anúncio:', errorText);
+          alert('Erro ao deletar anúncio: ' + (response.status + ' ' + response.statusText));
+          return;
+        }
+        
+        const res = await response.json();
         if (res.ok) {
           alert('Anúncio deletado com sucesso!');
           loadAds();
         } else {
-          alert('Erro ao deletar: ' + (res.error || 'Falha na requisição'));
+          alert('Erro ao deletar: ' + (res.error || 'Falha na operação'));
         }
       } catch (err) {
-        alert('Erro de conexão ao deletar anúncio.');
+        console.error('Erro ao deletar anúncio:', err);
+        alert('Erro de conexão ao deletar anúncio');
       }
     };
 
@@ -983,19 +1015,28 @@
       if (!confirm('Tem certeza que deseja deletar TODOS os anúncios? Esta ação não pode ser desfeita.')) return;
       
       try {
-        const res = await fetch('/api/ads', {
+        const response = await fetch('/api/ads', {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${adminAuthToken}` }
-        }).then(r => r.json());
+        });
         
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro ao limpar anúncios:', errorText);
+          alert('Erro ao limpar anúncios: ' + (response.status + ' ' + response.statusText));
+          return;
+        }
+        
+        const res = await response.json();
         if (res.ok) {
-          alert('Todos os anúncios foram deletados!');
+          alert('Todos os anúncios foram deletados com sucesso!');
           loadAds();
         } else {
-          alert('Erro ao limpar: ' + (res.error || 'Falha na requisição'));
+          alert('Erro ao limpar: ' + (res.error || 'Falha na operação'));
         }
       } catch (err) {
-        alert('Erro de conexão ao limpar anúncios.');
+        console.error('Erro ao limpar anúncios:', err);
+        alert('Erro de conexão ao limpar anúncios');
       }
     });
 
