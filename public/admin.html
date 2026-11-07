@@ -43,7 +43,11 @@
     button.copy{ background:var(--gold); color:#000 }
     button.copy:hover{ background:#d4b05f }
     .small{ font-size:13px; color:#777; margin:8px 0 }
-    .video-preview video{ width:100%; height:300px; background:#000; border-radius:8px }
+    .video-preview{ width:100%; height:300px; background:#000; border-radius:8px; overflow:hidden; position:relative }
+    .video-preview video{ width:100%; height:300px; background:#000; border-radius:8px; object-fit:cover; transform:scale(var(--camera-zoom,1)); transform-origin:center center; transition:transform .18s ease }
+    .zoom-controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:10px 0 4px }
+    .zoom-controls button{ min-width:48px; font-size:18px; padding:9px 14px }
+    #zoomLevel{ min-width:76px; text-align:center; color:var(--gold); font-weight:700 }
     .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px }
     .item{ background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; border:1px solid #222 }
     hr{ border:0; border-top:1px solid #222; margin:16px 0 }
@@ -98,6 +102,13 @@
       <div id="recSection" style="display:none">
         <h3>Gravar perguntas</h3>
         <div class="video-preview" id="preview">Nenhuma câmera conectada</div>
+        <div class="zoom-controls" aria-label="Controle de zoom da câmera">
+          <span>Zoom:</span>
+          <button type="button" id="zoomOut" class="secondary" aria-label="Diminuir zoom">−</button>
+          <span id="zoomLevel">1x</span>
+          <button type="button" id="zoomIn" class="secondary" aria-label="Aumentar zoom">+</button>
+        </div>
+        <div class="small">Ajuste em etapas: 1x, 2x, 3x e 4x. O zoom também será aplicado à gravação.</div>
         <div style="margin-top:8px">
           <button id="startRec">Iniciar gravação</button>
           <button id="stopRec" disabled>Parar</button>
@@ -219,6 +230,10 @@
   <script>
     let interview = null;
     let mediaStream = null;
+    let cameraCanvas = null;
+    let cameraContext = null;
+    let cameraFrame = null;
+    let zoomLevel = 1;
     let recorder = null;
     let recordedChunks = [];
     let currentBlob = null;
@@ -553,9 +568,50 @@
       currentBlob = null;
     }
     
+    // Controle gradual de zoom: 1x, 2x, 3x e 4x.
+    function updateZoom() {
+      zoomLevel = Math.max(1, Math.min(4, zoomLevel));
+      document.getElementById("zoomLevel").textContent = zoomLevel + "x";
+      const previewVideo = document.querySelector("#preview video");
+      if (previewVideo) previewVideo.style.setProperty("--camera-zoom", String(zoomLevel));
+      document.getElementById("zoomOut").disabled = zoomLevel === 1;
+      document.getElementById("zoomIn").disabled = zoomLevel === 4;
+    }
+
+    document.getElementById("zoomIn").addEventListener("click", () => {
+      if (zoomLevel < 4) zoomLevel += 1;
+      updateZoom();
+    });
+    document.getElementById("zoomOut").addEventListener("click", () => {
+      if (zoomLevel > 1) zoomLevel -= 1;
+      updateZoom();
+    });
+    updateZoom();
+
+    // O canvas aplica o recorte do zoom ao arquivo gravado, não só à prévia.
+    function drawCameraFrame() {
+      const video = document.querySelector("#preview video");
+      if (video && cameraCanvas && cameraContext && video.readyState >= 2 && video.videoWidth) {
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        if (cameraCanvas.width !== width || cameraCanvas.height !== height) {
+          cameraCanvas.width = width;
+          cameraCanvas.height = height;
+        }
+        const cropWidth = width / zoomLevel;
+        const cropHeight = height / zoomLevel;
+        const cropX = (width - cropWidth) / 2;
+        const cropY = (height - cropHeight) / 2;
+        cameraContext.clearRect(0, 0, width, height);
+        cameraContext.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, width, height);
+      }
+      cameraFrame = requestAnimationFrame(drawCameraFrame);
+    }
+
     // Inicializar câmera para gravação
     async function initCamera() {
       try {
+        if (mediaStream && mediaStream.active) return;
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         const video = document.createElement('video');
         video.autoplay = true;
@@ -564,6 +620,15 @@
         video.srcObject = mediaStream;
         video.style.width = '100%';
         video.style.height = '300px';
+        video.style.setProperty("--camera-zoom", String(zoomLevel));
+        video.addEventListener("loadedmetadata", () => {
+          cameraCanvas = document.createElement("canvas");
+          cameraCanvas.width = video.videoWidth || 1280;
+          cameraCanvas.height = video.videoHeight || 720;
+          cameraContext = cameraCanvas.getContext("2d");
+          if (cameraFrame) cancelAnimationFrame(cameraFrame);
+          drawCameraFrame();
+        }, { once: true });
         
         const preview = document.getElementById('preview');
         preview.innerHTML = '';
@@ -583,8 +648,20 @@
         if (!mediaStream) return;
       }
       
+      if (!cameraCanvas || !cameraCanvas.captureStream) {
+        document.getElementById("recStatus").innerText = "Seu navegador não oferece suporte à gravação com zoom.";
+        return;
+      }
       recordedChunks = [];
-      recorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm; codecs=vp9' });
+      const recordingStream = cameraCanvas.captureStream(30);
+      mediaStream.getAudioTracks().forEach(track => recordingStream.addTrack(track));
+      try {
+        recorder = new MediaRecorder(recordingStream, { mimeType: 'video/webm; codecs=vp9' });
+      } catch (mediaError) {
+        recordingStream.getTracks().forEach(track => track.stop());
+        document.getElementById("recStatus").innerText = "Não foi possível iniciar a gravação neste navegador.";
+        return;
+      }
       
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -593,6 +670,7 @@
       };
       
       recorder.onstop = () => {
+        recordingStream.getTracks().forEach(track => track.stop());
         currentBlob = new Blob(recordedChunks, { type: 'video/webm' });
         document.getElementById('recStatus').innerText = 'Gravação finalizada. Pronto para enviar.';
         document.getElementById('uploadRec').disabled = false;
