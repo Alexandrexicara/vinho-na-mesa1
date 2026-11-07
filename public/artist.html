@@ -105,31 +105,6 @@
         <div style="margin-top:16px">
           <h4 style="color:var(--gold);margin:0 0 8px 0">🎬 Sua Resposta</h4>
           <div class="video-preview" id="preview">Carregando câmera...</div>
-
-          <!-- Painel de efeitos especiais da gravação -->
-          <section id="effectsPanel" style="margin-top:12px;padding:14px;background:#171717;border:1px solid #5d1326;border-radius:10px">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-              <strong style="color:#c9a24a">✨ Efeitos especiais</strong>
-              <button type="button" id="toggleEffectsPanel" class="secondary">Fechar painel</button>
-            </div>
-            <p class="small" style="margin:8px 0">Marque os efeitos que deseja usar. Eles serão aplicados ao vídeo gravado.</p>
-            <div id="effectChoices" style="display:flex;flex-wrap:wrap;gap:8px">
-              <label><input type="checkbox" data-effect="grayscale"> Preto e branco</label>
-              <label><input type="checkbox" data-effect="sepia"> Sépia</label>
-              <label><input type="checkbox" data-effect="vintage"> Vintage</label>
-              <label><input type="checkbox" data-effect="blur"> Desfoque suave</label>
-              <label><input type="checkbox" data-effect="bright"> Brilho</label>
-              <label><input type="checkbox" data-effect="mirror"> Espelho</label>
-              <label><input type="checkbox" data-effect="vignette"> Vinheta</label>
-            </div>
-            <div id="selectedEffects" class="small" style="margin-top:10px">Nenhum efeito selecionado.</div>
-          </section>
-          <div id="recordingEffects" style="display:none;margin-top:10px;padding:10px;background:#111;border:1px solid #c9a24a;border-radius:10px">
-            <div class="small" style="color:#c9a24a;margin-bottom:8px">Efeitos rápidos durante a gravação — toque para ligar/desligar</div>
-            <div id="quickEffectButtons" style="display:flex;flex-wrap:wrap;gap:7px"></div>
-          </div>
-          <canvas id="effectsCanvas" style="display:none"></canvas>
-
         </div>
 
         <div style="margin-top:8px">
@@ -207,13 +182,6 @@
 let token = new URLSearchParams(location.search).get('token');
 let interview = null;
 let mediaStream = null;
-let processedStream = null;
-let effectsCanvas = null;
-let effectsContext = null;
-let cameraVideo = null;
-let selectedEffects = new Set();
-let effectsAnimationFrame = null;
-let isRecording = false;
 let recorder = null;
 let chunks = [];
 let blob = null;
@@ -237,8 +205,6 @@ async function initCamera(){
     const prev = document.getElementById('preview');
     prev.innerHTML = '';
     prev.appendChild(v);
-    cameraVideo = v;
-    setupVideoEffects();
   } catch(err){
     document.getElementById('preview').innerText = 'Permita câmera e microfone';
   }
@@ -271,9 +237,7 @@ function showNextQuestion(){
 document.getElementById('startRec').addEventListener('click', () => {
   if(!mediaStream) return alert('Permita câmera');
   chunks = [];
-  if (!processedStream) return alert('Aguarde a preparação dos efeitos da câmera.');
-  const supportedMime = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(type => MediaRecorder.isTypeSupported(type));
-  recorder = new MediaRecorder(processedStream, supportedMime ? { mimeType: supportedMime } : undefined);
+  recorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm; codecs=vp9' });
   recorder.ondataavailable = e =>{ if(e.data.size>0) chunks.push(e.data) };
   recorder.onstop = () => {
     blob = new Blob(chunks, { type: 'video/webm' });
@@ -281,16 +245,12 @@ document.getElementById('startRec').addEventListener('click', () => {
     document.getElementById('sendAnswer').disabled = false;
   };
   recorder.start();
-  isRecording = true;
-  document.getElementById('recordingEffects').style.display = 'block';
   document.getElementById('startRec').disabled = true;
   document.getElementById('stopRec').disabled = false;
   document.getElementById('status').innerText = 'Gravando...';
 });
 document.getElementById('stopRec').addEventListener('click', ()=> {
   if(recorder && recorder.state==='recording') recorder.stop();
-  isRecording = false;
-  document.getElementById('recordingEffects').style.display = 'none';
   document.getElementById('startRec').disabled = false;
   document.getElementById('stopRec').disabled = true;
 });
@@ -318,106 +278,6 @@ document.getElementById('nextBtn').addEventListener('click', ()=> {
   currentQuestionIndex++;
   showNextQuestion();
 });
-
-
-function setupVideoEffects() {
-  effectsCanvas = document.getElementById('effectsCanvas');
-  effectsContext = effectsCanvas.getContext('2d');
-  const previewVideo = cameraVideo;
-  const choices = document.getElementById('effectChoices');
-  const selectedLabel = document.getElementById('selectedEffects');
-  const quickArea = document.getElementById('quickEffectButtons');
-  const panel = document.getElementById('effectsPanel');
-  const effectNames = {
-    grayscale:'Preto e branco', sepia:'Sépia', vintage:'Vintage',
-    blur:'Desfoque suave', bright:'Brilho', mirror:'Espelho', vignette:'Vinheta'
-  };
-
-  choices.querySelectorAll('input[data-effect]').forEach(input => {
-    input.addEventListener('change', () => {
-      if(input.checked) selectedEffects.add(input.dataset.effect);
-      else selectedEffects.delete(input.dataset.effect);
-      updateEffectLabels();
-    });
-  });
-  document.getElementById('toggleEffectsPanel').addEventListener('click', () => {
-    const hidden = choices.style.display === 'none';
-    choices.style.display = hidden ? 'flex' : 'none';
-    selectedLabel.style.display = hidden ? 'block' : 'none';
-    document.getElementById('toggleEffectsPanel').textContent = hidden ? 'Fechar painel' : 'Abrir painel';
-  });
-
-  function updateEffectLabels() {
-    const names = [...selectedEffects].map(key => effectNames[key]);
-    selectedLabel.textContent = names.length ? 'Selecionados: ' + names.join(', ') : 'Nenhum efeito selecionado.';
-    quickArea.innerHTML = '';
-    names.forEach(name => {
-      const key = Object.keys(effectNames).find(k => effectNames[k] === name);
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = name + ' ✓';
-      button.dataset.effect = key;
-      button.style.cssText = 'padding:7px 9px;font-size:12px;background:#5d1326;border:1px solid #c9a24a';
-      button.addEventListener('click', () => {
-        if(selectedEffects.has(key)) selectedEffects.delete(key);
-        else selectedEffects.add(key);
-        const checkbox = choices.querySelector('[data-effect="' + key + '"]');
-        if(checkbox) checkbox.checked = selectedEffects.has(key);
-        updateEffectLabels();
-      });
-      quickArea.appendChild(button);
-    });
-    if(isRecording) {
-      quickArea.querySelectorAll('button').forEach(button => {
-        button.style.background = selectedEffects.has(button.dataset.effect) ? '#5d1326' : '#333';
-      });
-    }
-  }
-
-  // A câmera é desenhada em um canvas e esse canvas é a faixa de vídeo
-  // entregue ao MediaRecorder. Assim os efeitos entram no arquivo final.
-  function drawProcessedFrame() {
-    if(!effectsCanvas || !effectsContext || !previewVideo) return;
-    const width = previewVideo.videoWidth || 640;
-    const height = previewVideo.videoHeight || 480;
-    if(effectsCanvas.width !== width || effectsCanvas.height !== height) {
-      effectsCanvas.width = width;
-      effectsCanvas.height = height;
-    }
-    const filters = [];
-    if(selectedEffects.has('grayscale')) filters.push('grayscale(1)');
-    if(selectedEffects.has('sepia')) filters.push('sepia(1)');
-    if(selectedEffects.has('vintage')) filters.push('contrast(1.18) saturate(.72) sepia(.28)');
-    if(selectedEffects.has('blur')) filters.push('blur(1.5px)');
-    if(selectedEffects.has('bright')) filters.push('brightness(1.22)');
-    effectsContext.save();
-    effectsContext.clearRect(0,0,width,height);
-    effectsContext.filter = filters.length ? filters.join(' ') : 'none';
-    if(selectedEffects.has('mirror')) {
-      effectsContext.translate(width,0);
-      effectsContext.scale(-1,1);
-    }
-    try { effectsContext.drawImage(previewVideo,0,0,width,height); } catch(e) {}
-    effectsContext.restore();
-    effectsContext.filter = 'none';
-    if(selectedEffects.has('vignette')) {
-      const gradient = effectsContext.createRadialGradient(width/2,height/2,Math.min(width,height)*.18,width/2,height/2,Math.max(width,height)*.72);
-      gradient.addColorStop(0,'rgba(0,0,0,0)');
-      gradient.addColorStop(1,'rgba(0,0,0,.62)');
-      effectsContext.fillStyle = gradient;
-      effectsContext.fillRect(0,0,width,height);
-    }
-    effectsAnimationFrame = requestAnimationFrame(drawProcessedFrame);
-  }
-  if(previewVideo.readyState >= 2) drawProcessedFrame();
-  else previewVideo.addEventListener('loadeddata', drawProcessedFrame, {once:true});
-  const videoTrackStream = effectsCanvas.captureStream(30);
-  processedStream = new MediaStream([
-    ...videoTrackStream.getVideoTracks(),
-    ...mediaStream.getAudioTracks()
-  ]);
-  updateEffectLabels();
-}
 
 // Carregar anúncios
 const adSlots = {
