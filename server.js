@@ -694,5 +694,5 @@ app.use((req, res, next) => {
 // Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
-  console.log(`Senha administrativa padrão: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
+  console.log('Senha administrativa configurada.');
 });
