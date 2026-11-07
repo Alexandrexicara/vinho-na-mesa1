@@ -44,10 +44,11 @@ function readStore() {
       interviews: Array.isArray(parsed.interviews) ? parsed.interviews : [],
       ads: Array.isArray(parsed.ads) ? parsed.ads : [],
       viewIndex: parsed.viewIndex && typeof parsed.viewIndex === 'object' ? parsed.viewIndex : {},
-      artistIndex: parsed.artistIndex && typeof parsed.artistIndex === 'object' ? parsed.artistIndex : {}
+      artistIndex: parsed.artistIndex && typeof parsed.artistIndex === 'object' ? parsed.artistIndex : {},
+      soundEffects: Array.isArray(parsed.soundEffects) ? parsed.soundEffects : []
     };
   } catch {
-    return { interviews: [], ads: [], viewIndex: {}, artistIndex: {} };
+    return { interviews: [], ads: [], viewIndex: {}, artistIndex: {}, soundEffects: [] };
   }
 }
 
@@ -545,6 +546,49 @@ app.post('/api/interviews/:id/answers', upload.single('video'), (req, res) => {
   writeStore(store);
 
   res.json({ ok: true, answer, message: 'Resposta enviada com sucesso' });
+});
+
+
+const SOUND_EFFECT_CATALOG = [{"id":"panela","icon":"🍳","name":"Panela caindo","prompt":"A metal cooking pot falling onto a hard kitchen floor, clanging and bouncing briefly."},{"id":"freio","icon":"🚗","name":"Freio de carro","prompt":"A car braking hard with a sharp tire squeal, short realistic sound."},{"id":"sino","icon":"🔔","name":"Sino tocando","prompt":"A clear small handbell ringing brightly with a natural short decay."},{"id":"porta","icon":"🚪","name":"Porta batendo","prompt":"A heavy wooden door slamming shut with a short room reverberation."},{"id":"vidro","icon":"🥃","name":"Vidro quebrando","prompt":"A glass object shattering on a hard floor, crisp fragments scattering."},{"id":"aplausos","icon":"👏","name":"Aplausos","prompt":"A small audience applauding enthusiastically for a few seconds."},{"id":"risada","icon":"😂","name":"Risada","prompt":"A short burst of genuine human laughter, friendly and spontaneous."},{"id":"buzina","icon":"📣","name":"Buzina","prompt":"A single loud car horn honk, realistic city street sound."},{"id":"campainha","icon":"🔔","name":"Campainha","prompt":"A classic home doorbell ringing once."},{"id":"passos","icon":"👞","name":"Passos","prompt":"Several firm footsteps walking across a wooden floor."},{"id":"trovao","icon":"⛈️","name":"Trovão","prompt":"A dramatic deep thunderclap rolling briefly in the distance."},{"id":"chuva","icon":"🌧️","name":"Chuva forte","prompt":"A short burst of heavy rain hitting a window and pavement."},{"id":"vento","icon":"🌬️","name":"Rajada de vento","prompt":"A sudden gust of wind whooshing past the microphone."},{"id":"foguete","icon":"🚀","name":"Foguete","prompt":"A short cinematic rocket ignition and powerful launch whoosh."},{"id":"explosao","icon":"💥","name":"Explosão","prompt":"A controlled cinematic movie explosion with a deep impact and debris tail."},{"id":"soco","icon":"🥊","name":"Soco","prompt":"A single punch impact with a deep thud, stylized cinematic foley."},{"id":"espada","icon":"⚔️","name":"Espada","prompt":"A metal sword being drawn from its sheath with a sharp metallic scrape."},{"id":"tiro","icon":"🎯","name":"Disparo distante","prompt":"A single distant cinematic gunshot echo, non-graphic."},{"id":"helicoptero","icon":"🚁","name":"Helicóptero","prompt":"A helicopter rotor passing overhead briefly."},{"id":"aviao","icon":"✈️","name":"Avião","prompt":"A passenger airplane flying overhead with a fading engine roar."},{"id":"motor","icon":"🔑","name":"Motor ligando","prompt":"A car engine starting with ignition and settling into idle."},{"id":"aceleracao","icon":"🏎️","name":"Aceleração","prompt":"A sports car engine revving and accelerating away quickly."},{"id":"derrapagem","icon":"🛞","name":"Derrapagem","prompt":"A short tire skid and squeal on asphalt."},{"id":"moto","icon":"🏍️","name":"Moto","prompt":"A motorcycle engine revving loudly and driving away."},{"id":"sirene","icon":"🚨","name":"Sirene","prompt":"A short emergency vehicle siren sweep passing by."},{"id":"telefone","icon":"📞","name":"Telefone","prompt":"A classic telephone ringing twice."},{"id":"notificacao","icon":"📱","name":"Notificação","prompt":"A short modern smartphone notification chime."},{"id":"teclado","icon":"⌨️","name":"Teclado","prompt":"A few quick keystrokes on a mechanical computer keyboard."},{"id":"camera","icon":"📸","name":"Câmera","prompt":"A camera shutter click with a tiny mechanical sound."},{"id":"moedas","icon":"🪙","name":"Moedas","prompt":"A handful of metal coins dropping and spinning on a hard surface."},{"id":"caixa","icon":"💵","name":"Caixa registradora","prompt":"A cash register drawer opening with a bright cha-ching bell."},{"id":"papel","icon":"📄","name":"Papel rasgando","prompt":"A sheet of paper being torn quickly close to the microphone."},{"id":"agua","icon":"💧","name":"Água","prompt":"Water pouring into a glass with a gentle splash."},{"id":"gelo","icon":"🧊","name":"Gelo no copo","prompt":"Ice cubes dropping into a drinking glass and clinking."},{"id":"garrafa","icon":"🍾","name":"Garrafa abrindo","prompt":"A bottle cork popping with a celebratory fizz."},{"id":"talheres","icon":"🍴","name":"Talheres","prompt":"Metal cutlery clinking against ceramic plates."},{"id":"fritura","icon":"🍳","name":"Fritura","prompt":"Food sizzling in a hot frying pan, close-up kitchen sound."},{"id":"liquidificador","icon":"🥤","name":"Liquidificador","prompt":"A blender starting, whirring briefly, then stopping."},{"id":"microondas","icon":"⏲️","name":"Micro-ondas","prompt":"A microwave oven finishing with three short beeps."},{"id":"despertador","icon":"⏰","name":"Despertador","prompt":"A classic alarm clock ringing in a short burst."},{"id":"tic-tac","icon":"🕰️","name":"Relógio","prompt":"A close ticking clock for a few beats."},{"id":"magia","icon":"✨","name":"Magia","prompt":"A sparkling magical shimmer with a soft rising chime."},{"id":"whoosh","icon":"🎬","name":"Transição","prompt":"A short clean cinematic whoosh for a scene transition."},{"id":"suspense","icon":"🕵️","name":"Suspense","prompt":"A short tense cinematic sting with a low rising note."},{"id":"vitoria","icon":"🏆","name":"Vitória","prompt":"A triumphant short orchestral fanfare, bright and celebratory."},{"id":"erro","icon":"❌","name":"Erro","prompt":"A short descending electronic error buzz."},{"id":"acerto","icon":"✅","name":"Acerto","prompt":"A pleasant ascending success chime, short and bright."},{"id":"beijo","icon":"💋","name":"Beijo","prompt":"A playful short kiss sound effect, clean and light."},{"id":"cachorro","icon":"🐶","name":"Cachorro","prompt":"A dog giving two short realistic barks outdoors."},{"id":"gato","icon":"🐱","name":"Gato","prompt":"A short natural domestic cat meow."}];
+app.get('/api/sound-effects', verifyAdminToken, (req, res) => {
+  const saved = readStore().soundEffects || [];
+  res.json({ ok: true, data: SOUND_EFFECT_CATALOG.map(item => {
+    const file = saved.find(effect => effect.id === item.id);
+    return { id: item.id, icon: item.icon, name: item.name, generated: !!file, audioUrl: file ? file.audioUrl : null };
+  }) });
+});
+app.post('/api/sound-effects/generate', verifyAdminToken, async (req, res) => {
+  try {
+    const item = SOUND_EFFECT_CATALOG.find(effect => effect.id === (req.body || {}).id);
+    if (!item) return res.status(400).json({ ok: false, error: 'Efeito não encontrado.' });
+    const store = readStore();
+    store.soundEffects = Array.isArray(store.soundEffects) ? store.soundEffects : [];
+    const old = store.soundEffects.find(effect => effect.id === item.id);
+    if (old && fs.existsSync(path.join(UPLOADS_DIR, old.fileName))) return res.json({ ok: true, effect: { id: item.id, audioUrl: old.audioUrl } });
+    const key = process.env.ELEVENLABS_API_KEY;
+    if (!key) return res.status(503).json({ ok: false, error: 'Configure ELEVENLABS_API_KEY nas variáveis do Render.' });
+    const response = await fetch('https://api.elevenlabs.io/v1/sound-generation?output_format=mp3_44100_128', {
+      method: 'POST',
+      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+      body: JSON.stringify({ text: item.prompt, duration_seconds: 4, prompt_influence: 0.3 })
+    });
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error('ElevenLabs SFX:', response.status, detail.slice(0, 400));
+      return res.status(response.status === 429 ? 429 : 502).json({ ok: false, error: response.status === 429 ? 'Limite ou créditos do ElevenLabs atingidos.' : 'Falha do ElevenLabs ao gerar o som.' });
+    }
+    ensureDirs();
+    const fileName = 'sfx-' + item.id + '-' + Date.now() + '.mp3';
+    fs.writeFileSync(path.join(UPLOADS_DIR, fileName), Buffer.from(await response.arrayBuffer()));
+    const audioUrl = '/uploads/' + fileName;
+    store.soundEffects = store.soundEffects.filter(effect => effect.id !== item.id);
+    store.soundEffects.push({ id: item.id, name: item.name, icon: item.icon, fileName, audioUrl, createdAt: new Date().toISOString() });
+    writeStore(store);
+    res.json({ ok: true, effect: { id: item.id, name: item.name, icon: item.icon, audioUrl } });
+  } catch (error) {
+    console.error('Erro ao gerar efeito:', error);
+    res.status(500).json({ ok: false, error: 'Erro interno ao gerar efeito sonoro.' });
+  }
 });
 
 // Ads (para o viewer1.html)
