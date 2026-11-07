@@ -48,6 +48,15 @@
     .zoom-controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:10px 0 4px }
     .zoom-controls button{ min-width:48px; font-size:18px; padding:9px 14px }
     #zoomLevel{ min-width:76px; text-align:center; color:var(--gold); font-weight:700 }
+
+    .effects-panel{margin:14px 0;padding:14px;background:#0a0a0a;border:1px solid #30202a;border-radius:10px}
+    .effects-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;max-height:250px;overflow:auto;margin:10px 0}
+    .effect-choice{display:flex;align-items:center;gap:7px;background:#171717;border:1px solid #333;border-radius:8px;padding:9px;font-size:12px}
+    .effect-choice input{accent-color:var(--gold)}
+    .effect-trigger-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .effect-trigger{background:#80521a;min-height:44px}
+    .effects-note{font-size:12px;color:#aaa;line-height:1.5}
+
     .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px }
     .item{ background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; border:1px solid #222 }
     hr{ border:0; border-top:1px solid #222; margin:16px 0 }
@@ -110,6 +119,15 @@
         </div>
         <div class="small">Ajuste em etapas: 1x, 2x, 3x e 4x. O zoom também será aplicado à gravação.</div>
         <div style="margin-top:8px">
+
+        <div class="effects-panel">
+          <h4 style="margin:0 0 6px;color:var(--gold)">🎛️ Banco de efeitos sonoros — 50 opções</h4>
+          <div class="effects-note">Escolha até 4 efeitos antes de gravar. Gere os sons selecionados uma vez; depois, acione os botões durante a gravação. O som será incorporado ao vídeo.</div>
+          <div id="effectsCatalog" class="effects-list">Faça login para carregar a biblioteca.</div>
+          <button type="button" id="generateEffectsBtn" class="secondary">Gerar efeitos selecionados com ElevenLabs</button>
+          <div id="effectsStatus" class="small">Selecione até 4 efeitos.</div>
+          <div id="activeEffects" class="effect-trigger-list"></div>
+        </div>
           <button id="startRec">Iniciar gravação</button>
           <button id="stopRec" disabled>Parar</button>
           <button id="uploadRec" disabled>Enviar pergunta</button>
@@ -238,6 +256,11 @@
     let recordedChunks = [];
     let currentBlob = null;
     let adminAuthToken = null;
+    let audioContext = null;
+    let recordingAudioDestination = null;
+    const generatedEffectBuffers = new Map();
+    let selectedEffectIds = [];
+    let availableEffects = [];
 
     // Check if already logged in
     const storedToken = localStorage.getItem('adminToken');
@@ -259,6 +282,7 @@
           document.querySelector('#mainPanel').style.display = 'block';
           document.querySelector('section.card').style.display = 'none';
           loadInterviews();
+          loadSoundEffects();
           
           // Mostrar seções adicionais
           document.getElementById('adsSection').style.display = 'block';
@@ -308,6 +332,7 @@
           document.querySelector('#mainPanel').style.display = 'block';
           document.querySelector('section.card').style.display = 'none';
           msg.innerText = '✅ Login realizado com sucesso!';
+          loadSoundEffects();
           
           // Mostrar seções adicionais
           document.getElementById('adsSection').style.display = 'block';
@@ -640,6 +665,80 @@
       }
     }
     
+
+    async function loadSoundEffects() {
+      if (!adminAuthToken) return;
+      const catalogEl = document.getElementById('effectsCatalog');
+      try {
+        const response = await fetch('/api/sound-effects', { headers: { 'Authorization': `Bearer ${adminAuthToken}` } });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || 'Falha ao carregar efeitos');
+        availableEffects = result.data || [];
+        catalogEl.innerHTML = availableEffects.map(effect => `<label class="effect-choice"><input type="checkbox" value="${effect.id}" ${selectedEffectIds.includes(effect.id) ? 'checked' : ''}><span>${effect.icon} ${effect.name}${effect.generated ? ' ✓' : ''}</span></label>`).join('');
+        catalogEl.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+          const checked = [...catalogEl.querySelectorAll('input:checked')].map(el => el.value);
+          if (checked.length > 4) { input.checked = false; document.getElementById('effectsStatus').textContent = 'Selecione no máximo 4 efeitos.'; return; }
+          selectedEffectIds = checked;
+          renderEffectTriggers();
+          document.getElementById('effectsStatus').textContent = checked.length + ' efeito(s) selecionado(s).';
+        }));
+        renderEffectTriggers();
+      } catch (error) { catalogEl.textContent = error.message; }
+    }
+    function renderEffectTriggers() {
+      const chosen = availableEffects.filter(effect => selectedEffectIds.includes(effect.id) && effect.generated);
+      const box = document.getElementById('activeEffects');
+      box.innerHTML = chosen.map(effect => `<button type="button" class="effect-trigger" data-effect-id="${effect.id}" disabled>${effect.icon} ${effect.name}</button>`).join('');
+      box.querySelectorAll('button').forEach(button => button.addEventListener('click', () => playSoundEffect(button.dataset.effectId)));
+      updateEffectButtons();
+    }
+    function updateEffectButtons() {
+      const active = !!(recorder && recorder.state === 'recording');
+      document.querySelectorAll('.effect-trigger').forEach(button => { button.disabled = !active || !generatedEffectBuffers.has(button.dataset.effectId); });
+    }
+    document.getElementById('generateEffectsBtn').addEventListener('click', async () => {
+      if (!adminAuthToken) return alert('Faça login como administrador.');
+      if (!selectedEffectIds.length) return alert('Selecione até 4 efeitos.');
+      const button = document.getElementById('generateEffectsBtn');
+      const status = document.getElementById('effectsStatus');
+      button.disabled = true;
+      try {
+        for (const id of selectedEffectIds) {
+          const item = availableEffects.find(effect => effect.id === id);
+          if (item && item.generated) continue;
+          status.textContent = 'Gerando ' + (item ? item.name : id) + ' no ElevenLabs...';
+          const response = await fetch('/api/sound-effects/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminAuthToken}` }, body: JSON.stringify({ id }) });
+          const result = await response.json();
+          if (!response.ok || !result.ok) throw new Error(result.error || 'Falha ao gerar');
+        }
+        await loadSoundEffects();
+        status.textContent = 'Efeitos prontos. Inicie a gravação para acioná-los.';
+      } catch (error) { status.textContent = 'Erro: ' + error.message; }
+      finally { button.disabled = false; }
+    });
+    async function preloadSelectedEffects() {
+      for (const effect of availableEffects.filter(item => selectedEffectIds.includes(item.id) && item.generated && item.audioUrl)) {
+        if (generatedEffectBuffers.has(effect.id)) continue;
+        const response = await fetch(effect.audioUrl);
+        if (!response.ok) throw new Error('Falha ao carregar ' + effect.name);
+        const data = await response.arrayBuffer();
+        generatedEffectBuffers.set(effect.id, await audioContext.decodeAudioData(data.slice(0)));
+      }
+      renderEffectTriggers();
+    }
+    function playSoundEffect(id) {
+      if (!audioContext || !recordingAudioDestination || !generatedEffectBuffers.has(id) || !recorder || recorder.state !== 'recording') return;
+      const source = audioContext.createBufferSource();
+      source.buffer = generatedEffectBuffers.get(id);
+      const gain = audioContext.createGain();
+      gain.gain.value = 0.9;
+      source.connect(gain);
+      gain.connect(recordingAudioDestination);
+      source.start(0);
+      const effect = availableEffects.find(item => item.id === id);
+      document.getElementById('effectsStatus').textContent = '▶ Efeito acionado: ' + (effect ? effect.name : id);
+    }
+
     // Iniciar gravação
     document.getElementById('startRec').addEventListener('click', async () => {
       if (!mediaStream) {
@@ -654,7 +753,20 @@
       }
       recordedChunks = [];
       const recordingStream = cameraCanvas.captureStream(30);
-      mediaStream.getAudioTracks().forEach(track => recordingStream.addTrack(track));
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        await audioContext.resume();
+        recordingAudioDestination = audioContext.createMediaStreamDestination();
+        const microphoneSource = audioContext.createMediaStreamSource(new MediaStream(mediaStream.getAudioTracks()));
+        microphoneSource.connect(recordingAudioDestination);
+        recordingAudioDestination.stream.getAudioTracks().forEach(track => recordingStream.addTrack(track));
+        await preloadSelectedEffects();
+      } catch (audioError) {
+        recordingStream.getTracks().forEach(track => track.stop());
+        if (audioContext) { await audioContext.close().catch(() => {}); audioContext = null; }
+        document.getElementById('recStatus').innerText = 'Erro ao preparar áudio: ' + audioError.message;
+        return;
+      }
       try {
         recorder = new MediaRecorder(recordingStream, { mimeType: 'video/webm; codecs=vp9' });
       } catch (mediaError) {
@@ -671,7 +783,10 @@
       
       recorder.onstop = () => {
         recordingStream.getTracks().forEach(track => track.stop());
+        recordingAudioDestination = null;
+        if (audioContext) { audioContext.close().catch(() => {}); audioContext = null; }
         currentBlob = new Blob(recordedChunks, { type: 'video/webm' });
+        updateEffectButtons();
         document.getElementById('recStatus').innerText = 'Gravação finalizada. Pronto para enviar.';
         document.getElementById('uploadRec').disabled = false;
         
@@ -694,7 +809,8 @@
       recorder.start();
       document.getElementById('startRec').disabled = true;
       document.getElementById('stopRec').disabled = false;
-      document.getElementById('recStatus').innerText = 'Gravando...';
+      document.getElementById('recStatus').innerText = 'Gravando... Acione os efeitos nos botões abaixo.';
+      updateEffectButtons();
       
       // Remover pré-visualização anterior se existir
       const existingPreview = document.querySelector('#recSection video');
